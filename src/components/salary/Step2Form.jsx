@@ -53,7 +53,7 @@ export default function Step2Form({
       setIndustriesStep2Loading(true);
       setIndustriesStep2Error('');
       try {
-        let res = await fetch('http://localhost:3000/api/industries/position');
+        let res = await fetch('https://tsalin-ai.onrender.com/api/industries/position');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         let data = await res.json();
         let list = extractList(data);
@@ -61,7 +61,7 @@ export default function Step2Form({
         setIndustriesStep2(list);
       } catch (e1) {
         try {
-          let res2 = await fetch('http://localhost:3000/api/industries/positions');
+          let res2 = await fetch('https://tsalin-ai.onrender.com/api/industries/positions');
           if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
           let data2 = await res2.json();
           setIndustriesStep2(extractList(data2));
@@ -81,7 +81,7 @@ export default function Step2Form({
   const fetchMajorsForIndustry = React.useCallback(async (industryId) => {
     if (!industryId) { setMajorsOptions([]); return; }
     try {
-      const res = await fetch(`http://localhost:3000/api/industries/${industryId}/positions`);
+      const res = await fetch(`https://tsalin-ai.onrender.com/api/industries/${industryId}/positions`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
@@ -97,7 +97,7 @@ export default function Step2Form({
       try {
         setProLevelsLoading(true);
         setProLevelsError('');
-        const res = await fetch('http://localhost:3000/api/pro-levels');
+        const res = await fetch('https://tsalin-ai.onrender.com/api/pro-levels');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
