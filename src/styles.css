@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  @font-face {
+    font-family: 'TTFirsNeueCY';
+    src: url('/fonts/TT Firs Neue CY/TTFirsNeueCY-Regular.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  html { font-family: 'TTFirsNeueCY', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, 'Noto Sans', 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; }
+  body, button, input, select, textarea { font: inherit; }
+}
+
+@layer utilities {
+  .font-vollkorn { font-family: "Vollkorn", serif; font-optical-sizing: auto; }
+  .font-cuprum { font-family: "Cuprum", sans-serif; font-optical-sizing: auto; }
+  @keyframes card-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .animate-card-float {
+    animation: card-float 5s ease-in-out infinite;
+  }
+  @keyframes card-float-x {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-16px); }
+  }
+  .animate-card-float-x-fast {
+    animation: card-float-x 3s ease-in-out infinite;
+  }
+  @keyframes card-enter-x {
+    0% { transform: translateX(24px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .animate-card-enter {
+    animation: card-enter-x 600ms ease-out both;
+  }
+  @keyframes card-enter-y {
+    0% { transform: translateY(-24px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .animate-card-enter-y {
+    animation: card-enter-y 600ms ease-out both;
+  }
+  .font-firs { font-family: 'TTFirsNeueCY', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, 'Noto Sans', 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; }
+}
+
