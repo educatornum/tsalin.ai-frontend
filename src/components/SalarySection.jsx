@@ -1025,7 +1025,7 @@ export default function SalarySection({ compact = false }) {
 
        {/* Major combobox with autocomplete */}
        <div ref={majorRef} className="relative">
-         <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Мэргэжлийн төрөлөө сонгоно уу</div>
+         <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Мэргэжлийн төрөлөө сонгоно уу:</div>
          <div
            className={`flex items-center justify-between rounded-xl border px-3 py-2 cursor-text ${majorOpen? 'ring-2 ring-blue-500' : ''} border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white ${!positionsForIndustry.length ? 'opacity-60 pointer-events-none' : ''}`}
            onClick={() => positionsForIndustry.length && setMajorOpen(true)}
