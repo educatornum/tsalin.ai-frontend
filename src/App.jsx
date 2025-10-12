@@ -12,6 +12,8 @@ import StatPost from './components/StatPost.jsx';
 import VerifiedBadge from './components/VerifiedBadge.jsx';
 import UnverifiedBadge from './components/UnverifiedBadge.jsx';
 
+const asset = (p) => new URL(p, import.meta.env.BASE_URL).href;
+
 export default function App() {
   const [selectedJob, setSelectedJob] = React.useState(null);
   const openJob = (job) => setSelectedJob(job);
@@ -142,9 +144,9 @@ export default function App() {
                     </button>
                     <h2 className="text-[#020202] dark:text-white text-sm md:text-base font-medium whitespace-nowrap shrink-0">Эх сурвалж:</h2>
                     <button onClick={()=>handleFilter('')} className={`px-4 py-2 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}> Бүгд</button>
-                    <button onClick={()=>handleFilter('user_submission')} className={`px-4 py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src="/logo-svg/Symbol Black.svg" alt="TSALIN.ai" className="h-5 w-5 md:h-6 md:w-6" /></button>
-                    <button onClick={()=>handleFilter('cv_upload')} className={`px-4 py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src="/cv.png" alt="CV_upload" className="h-5 w-5 md:h-6 md:w-6" /></button>
-                    <button onClick={()=>handleFilter('lambda')} className={`px-4 py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src="/lamb-logo.png" alt="lambda" className="h-5 w-5 md:h-6 md:w-6" /></button>
+                    <button onClick={()=>handleFilter('user_submission')} className={`px-4 py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-5 w-5 md:h-6 md:w-6" /></button>
+                    <button onClick={()=>handleFilter('cv_upload')} className={`px-4 py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-5 w-5 md:h-6 md:w-6" /></button>
+                    <button onClick={()=>handleFilter('lambda')} className={`px-4 py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-5 w-5 md:h-6 md:w-6" /></button>
                   </div>
 
                   {/* Animated columns - 4 max */}
@@ -191,7 +193,7 @@ export default function App() {
         p-2 left-5 bottom-5 bg-white border
         border-gray-200 rounded-full 
         px-4 py-2 shadow-lg flex items-center gap-2 text-gray-900">
-        Powered by Lambda <img src="/lamb-logo.png" alt="Lambda" className="h-4 w-4" />
+        Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-4 w-4" />
       </button>
       <footer className="fixed inset-x-0 bottom-0 z-40">
         <h1 className="text-center text-lg text-[#020202] p-4 dark:text-gray-400">
