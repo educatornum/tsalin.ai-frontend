@@ -39,11 +39,12 @@ export default function JobCard({ job, enter = true, variant }) {
   };
 
   const [previewOpen, setPreviewOpen] = React.useState(false);
+  const baseU = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
   const imgSrc = job.source === 'lambda'
-    ? new URL('lamb-logo.png', import.meta.env.BASE_URL).href
+    ? `${baseU}lamb-logo.png`
     : (job.source === 'cv_upload'
-      ? new URL('cv.png', import.meta.env.BASE_URL).href
-      : new URL('logo-svg/Symbol-Red.svg', import.meta.env.BASE_URL).href);
+      ? `${baseU}cv.png`
+      : `${baseU}logo-svg/Symbol-Red.svg`);
 
   return (
     <article className={cardClasses}>

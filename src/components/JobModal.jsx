@@ -41,11 +41,12 @@ export default function JobModal({ job, onClose }) {
             <img
               className="w-12 h-12 rounded-full border border-[#020202] dark:border-[#020202] bg-transparent dark:bg-white p-1"
               src={
-                job.source === 'lambda'
-                  ? new URL('lamb-logo.png', import.meta.env.BASE_URL).href
-                  : job.source === 'cv_upload'
-                  ? new URL('cv.png', import.meta.env.BASE_URL).href
-                  : new URL('logo-svg/Symbol-Red.svg', import.meta.env.BASE_URL).href
+                (() => {
+                  const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
+                  if (job.source === 'lambda') return `${base}lamb-logo.png`;
+                  if (job.source === 'cv_upload') return `${base}cv.png`;
+                  return `${base}logo-svg/Symbol-Red.svg`;
+                })()
               }
               alt="Company logo"
             />

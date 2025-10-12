@@ -12,7 +12,11 @@ import StatPost from './components/StatPost.jsx';
 import VerifiedBadge from './components/VerifiedBadge.jsx';
 import UnverifiedBadge from './components/UnverifiedBadge.jsx';
 
-const asset = (p) => new URL(p, import.meta.env.BASE_URL).href;
+const asset = (p) => {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
+  const path = String(p || '').replace(/^\/+/, '');
+  return `${base}${path}`;
+};
 
 export default function App() {
   const [selectedJob, setSelectedJob] = React.useState(null);

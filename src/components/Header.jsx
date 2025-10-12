@@ -94,7 +94,11 @@ export default function Header({ onPostClick }) {
                 </div>
               </a>
               <a href="https://lambda.global" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl border border-slate-600 p-3 hover:bg-slate-700 transition">
-                <img src={new URL('lamb-logo.png', import.meta.env.BASE_URL).href} alt="Lambda" className="h-10 w-10 rounded-md bg-white object-contain p-1" />
+                {(() => {
+                  const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
+                  const src = `${base}lamb-logo.png`;
+                  return <img src={src} alt="Lambda" className="h-10 w-10 rounded-md bg-white object-contain p-1" />;
+                })()}
                 <div>
                   <div className="font-semibold">Lambda.global</div>
                   <div className="text-xs text-slate-300">Гоё ажилд орооч</div>
