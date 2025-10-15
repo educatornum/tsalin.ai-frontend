@@ -8,7 +8,8 @@ import logoBlack from '/logo-svg/Symbol Black.svg';
 import logYelloSymbol from '/logo-svg/Symbol Outlined Yellow.svg';
 import MainWhite from '/logo-svg/Main-White.svg';
 import SymbolYellow from '/logo-svg/Symbol-Red.svg';
-export default function SalarySection({ compact = false }) {
+import PostModalChart from './PostModalChart.jsx';
+export default function SalarySection({ compact = false, isUnlocked: externalIsUnlocked, setIsUnlocked: setExternalIsUnlocked, forceStep1, setForceStep1 }) {
   const [industries, setIndustries] = React.useState([]);
   const [industriesLoading, setIndustriesLoading] = React.useState(false);
   const [industriesError, setIndustriesError] = React.useState('');
@@ -24,6 +25,7 @@ export default function SalarySection({ compact = false }) {
   const [majorQuery, setMajorQuery] = React.useState('');
   const [majorActiveIndex, setMajorActiveIndex] = React.useState(0);
   const majorRef = React.useRef(null);
+  const positionListRef = React.useRef(null);
 
   const [form, setForm] = React.useState({
     role: '',
@@ -36,7 +38,9 @@ export default function SalarySection({ compact = false }) {
     positionId: '',
     proLevelName: '',
     proLevelId: '',
+    proLevelLevel: '',
     years: '1',
+    salary: '',
     file: null
   });
   const [step, setStep] = React.useState(1);
@@ -45,7 +49,46 @@ export default function SalarySection({ compact = false }) {
   const SALARY_MIN = 792000; // ₮
   const SALARY_MAX = 20000000; // ₮
   const [salaryOutOfRange, setSalaryOutOfRange] = React.useState(false);
+  const [rangeMoved, setRangeMoved] = React.useState(false);
   const yearsOptions = React.useMemo(() => Array.from({ length: 30 }, (_, i) => i + 1), []);
+
+  // Unlock state management
+  const [isUnlocked, setIsUnlocked] = React.useState(false);
+
+  // Always use salary counter for unlock logic, ignore external state for steps
+  const currentIsUnlocked = isUnlocked; // Always use internal salary counter logic
+  const setCurrentIsUnlocked = (value) => {
+    setIsUnlocked(value);
+  };
+
+  // Check unlock status from localStorage based on salary submission counter
+  React.useEffect(() => {
+    const salaryCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
+    const unlocked = salaryCount >= 1;
+    console.log('SalarySection: salary count:', salaryCount, 'unlocked:', unlocked);
+    setCurrentIsUnlocked(unlocked);
+  }, []);
+
+  // Reset rangeMoved when step changes
+  React.useEffect(() => {
+    setRangeMoved(false);
+  }, [step]);
+
+  // Handle forceStep1 prop
+  React.useEffect(() => {
+    if (forceStep1) {
+      console.log('ForceStep1 triggered, setting step to 1');
+      setStep(1);
+      if (setForceStep1) {
+        setForceStep1(false); // Reset the flag
+      }
+    }
+  }, [forceStep1, setForceStep1]);
+
+  // Debug unlock state changes
+  React.useEffect(() => {
+    console.log('currentIsUnlocked changed to:', currentIsUnlocked);
+  }, [currentIsUnlocked]);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [posting, setPosting] = React.useState(false);
   const [postError, setPostError] = React.useState('');
@@ -550,8 +593,8 @@ export default function SalarySection({ compact = false }) {
       ...f,
       position: item.name_mn || item.name_en || item.name || '',
       positionId: item._id || item.id || '',
-      industryId: f.industryId || industryFromPosition,
-      industry: f.industry || industryName
+      industryId: industryFromPosition,
+      industry: industryName
     }));
     setPositionOpen(false);
   };
@@ -724,9 +767,9 @@ export default function SalarySection({ compact = false }) {
   // Step 1 validation: require (industry+major OR position), plus pro level and years
   const hasIndustryMajor = Boolean(form.industryId && form.majorId);
   const hasPositionOnly = Boolean(form.positionId);
-  const canProceedStep1 = Boolean((hasIndustryMajor || hasPositionOnly) && form.proLevelId && form.years !== '');
+  const canProceedStep1 = Boolean((hasIndustryMajor || hasPositionOnly) && form.proLevelId && form.years !== '' && rangeMoved);
   // Step 2 validation: require industry, major, years, pro level
-  const canProceedStep2 = Boolean(form.industryId && form.majorId && form.proLevelId && form.years !== '');
+  const canProceedStep2 = Boolean(form.positionId && form.salary);
 
   // Submit to backend
   const submitToBackend = async () => {
@@ -766,6 +809,22 @@ export default function SalarySection({ compact = false }) {
         throw new Error(text || `HTTP ${res.status}`);
       }
       setCongratsOpen(true);
+      
+      // Increment salary submission counter
+      const currentCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
+      const newCount = currentCount + 1;
+      localStorage.setItem('salarySubmissionCount', newCount.toString());
+      
+      console.log('Salary submitted successfully, count:', newCount);
+      
+      // Unlock the application after successful submission (if count >= 1)
+      const unlocked = newCount >= 1;
+      setCurrentIsUnlocked(unlocked);
+      
+      // Dispatch custom event to notify App component
+      window.dispatchEvent(new CustomEvent('salarySubmitted', { 
+        detail: { count: newCount, unlocked: unlocked } 
+      }));
     } catch (e) {
       setPostError(e?.message || 'Failed to submit');
     } finally {
@@ -776,10 +835,8 @@ export default function SalarySection({ compact = false }) {
   const submitToBackend2 = () => {
     setPostError('');
     const missing = [];
-    if (!form.industryId) missing.push('Салбар');
-    if (!form.positionId) missing.push('Мэргэжил');
-    if (form.years === '' || Number.isNaN(Number(form.years))) missing.push('Туршлага');
-    if (!form.proLevelId) missing.push('Ажлын түвшин');
+    if (!form.positionId) missing.push('Албан тушаал');
+    if (!form.salary || form.salary === '') missing.push('Авч буй цалин');
     if (missing.length) {
       setPostError(`Дутуу: ${missing.join(', ')} оруулна уу` );
       return;
@@ -948,7 +1005,10 @@ export default function SalarySection({ compact = false }) {
                 max="30"
                 step="1"
                 value={form.years === '' ? 1 : Number(form.years)}
-                onChange={(e) => setForm((f) => ({ ...f, years: String(e.target.value) }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, years: String(e.target.value) }));
+                  setRangeMoved(true);
+                }}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-0 -bottom-6">1</span>
@@ -956,6 +1016,11 @@ export default function SalarySection({ compact = false }) {
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-2/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">20</span>
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute end-0 -bottom-6">30</span>
             </div>
+            {!rangeMoved && (
+              <div className="text-xs text-amber-500 dark:text-amber-400 mt-2 pt-4">
+                ⚠️ Ажилласан жилээ сонгохын тулд slider-ийг хөдөлгөнө үү
+              </div>
+            )}
           </div>
 
         
@@ -968,25 +1033,25 @@ export default function SalarySection({ compact = false }) {
       )}
       {step === 2 && (
        <div className="space-y-6">
-       {/* Industry combobox with autocomplete */}
-       <div ref={industryRef} className="relative">
-         <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Салбараа сонгоно уу</div>
+       {/* Position combobox with autocomplete (like Step 1) */}
+       <div ref={positionRef} className="relative">
+         <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Албан тушаалаа оруулна уу</div>
          <div
-           className={`flex items-center justify-between rounded-xl border px-3 py-2 cursor-text ${industryOpen? 'ring-2 ring-blue-500' : ''} border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white`}
-           onClick={() => setIndustryOpen(true)}
+           className={`flex items-center justify-between rounded-xl border px-3 py-2 cursor-text ${positionOpen? 'ring-2 ring-blue-500' : ''} border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white`}
+           onClick={() => setPositionOpen(true)}
          >
            <input
              className="w-full bg-transparent outline-none text-slate-100 dark:text-slate-900 placeholder-slate-400"
-             placeholder={industriesStep2Loading ? 'Уншиж байна...' : (form.industry || 'Салбар сонгоно уу')}
-             value={industryOpen ? industryQuery : ''}
-             onChange={(e) => { setIndustryQuery(e.target.value); setIndustryOpen(true); }}
-             onFocus={() => { setIndustryOpen(true); setIndustryQuery(''); }}
-             onKeyDown={handleIndustryKey}
+             placeholder={positionsLoading ? 'Уншиж байна...' : (form.position || 'Албан тушаал оруулна уу')}
+             value={positionOpen ? positionQuery : ''}
+             onChange={(e) => { setPositionQuery(e.target.value); setPositionOpen(true); }}
+             onFocus={() => { setPositionOpen(true); setPositionQuery(''); }}
+             onKeyDown={handlePositionKey}
            />
-           {Boolean(form.industry || industryQuery) && (
+           {Boolean(form.position || positionQuery) && (
              <button
                type="button"
-               onClick={(e) => { e.stopPropagation(); setForm((f)=>({ ...f, industry:'', industryId:'', major:'', majorId:'', position:'', positionId:'' })); setIndustryQuery(''); setPositionsForIndustry([]); setMajorQuery(''); }}
+               onClick={(e) => { e.stopPropagation(); setForm((f)=>({ ...f, position:'', positionId:'' })); setPositionQuery(''); }}
                className="ml-2 rounded-md px-2 py-1 text-xs bg-slate-700 text-slate-100 dark:bg-gray-200 dark:text-slate-800 hover:opacity-80"
                aria-label="Clear"
              >
@@ -995,22 +1060,23 @@ export default function SalarySection({ compact = false }) {
            )}
            <span className="ml-2 text-slate-400">▾</span>
          </div>
-            {industryOpen && (
-           <div className="absolute z-20 mt-1 w-full max-h-80 overflow-auto rounded-xl border border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white shadow-lg" onMouseLeave={()=> setIndustryOpen(false)}>
-            {industriesStep2Error && (
-              <div className="px-3 py-2 text-sm text-red-400 dark:text-red-600">{industriesStep2Error}</div>
-            )}
-            {!industriesStep2Error && (filteredIndustriesStep2.length ? (
-              filteredIndustriesStep2.map((it, idx) => {
-                 const selected = form.industryId && (form.industryId === (it._id ?? it.id));
+         {positionOpen && (
+           <div ref={positionListRef} className="absolute z-20 mt-1 w-full max-h-96 overflow-y-auto overscroll-contain rounded-xl border border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white shadow-lg scroll-smooth" onMouseLeave={()=> setPositionOpen(false)}>
+             {positionsError && (
+               <div className="px-3 py-2 text-sm text-red-400 dark:text-red-600">{positionsError}</div>
+             )}
+             {!positionsError && (filteredPositions.length ? (
+               filteredPositions.map((p, idx) => {
+                 const selected = form.positionId && (form.positionId === (p._id ?? p.id));
                  return (
                    <button
-                     key={it._id ?? it.id}
+                     key={p._id ?? p.id}
                      type="button"
-                     onClick={() => chooseIndustry(it)}
-                     className={`w-full text-left px-3 py-2 ${idx===industryActiveIndex? 'bg-slate-700/50 dark:bg-gray-100' : ''} ${selected? 'font-bold' : ''} text-slate-100 dark:text-slate-900 hover:bg-slate-700/50 dark:hover:bg-gray-100`}
+                     onClick={() => choosePosition(p)}
+                     data-position-item="1"
+                     className={`w-full text-left px-3 py-2 ${idx===positionActiveIndex? 'bg-slate-700/50 dark:bg-gray-100' : ''} ${selected? 'font-bold' : ''} text-slate-100 dark:text-slate-900 hover:bg-slate-700/50 dark:hover:bg-gray-100 focus:outline-none`}
                    >
-                     {it.name_mn}
+                     {p.name_mn || p.name_en || p.name}
                    </button>
                  );
                })
@@ -1019,63 +1085,46 @@ export default function SalarySection({ compact = false }) {
              ))}
            </div>
          )}
-         
        </div>
+       <div className={`text-xs ${salaryOutOfRange ? 'text-red-500' : 'text-slate-400 dark:text-slate-600'}`}>Жишээ нь: Програм хангамжийн инженер / Software Engineer</div>
 
 
-       {/* Major combobox with autocomplete */}
-       <div ref={majorRef} className="relative">
-         <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Мэргэжлийн төрөлөө сонгоно уу:</div>
-         <div
-           className={`flex items-center justify-between rounded-xl border px-3 py-2 cursor-text ${majorOpen? 'ring-2 ring-blue-500' : ''} border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white ${!positionsForIndustry.length ? 'opacity-60 pointer-events-none' : ''}`}
-           onClick={() => positionsForIndustry.length && setMajorOpen(true)}
-         >
-           <input
-             className="w-full bg-transparent outline-none text-slate-100 dark:text-slate-900 placeholder-slate-400"
-             placeholder={positionsForIndustry.length ? (form.position || 'Мэргэжил сонгоно уу') : 'Эхлээд салбар сонгоно уу'}
-             value={majorOpen ? majorQuery : ''}
-             onChange={(e) => { setMajorQuery(e.target.value); positionsForIndustry.length && setMajorOpen(true); }}
-             onFocus={() => { positionsForIndustry.length && (setMajorOpen(true), setMajorQuery('')); }}
-             onKeyDown={handleMajorKey}
-             disabled={!positionsForIndustry.length}
-           />
-           {Boolean(form.position || majorQuery) && (
-             <button
-               type="button"
-               onClick={(e) => { e.stopPropagation(); setForm((f)=>({ ...f, position:'', positionId:'' })); setMajorQuery(''); }}
-               className="ml-2 rounded-md px-2 py-1 text-xs bg-slate-700 text-slate-100 dark:bg-gray-200 dark:text-slate-800 hover:opacity-80"
-               aria-label="Clear"
-             >
-               ✕
-             </button>
-           )}
-           <span className="ml-2 text-slate-400">▾</span>
-         </div>
-         {majorOpen && (
-           <div className="absolute z-20 mt-1 w-full max-h-80 overflow-auto rounded-xl border border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white shadow-lg" onMouseLeave={()=> setMajorOpen(false)}>
-             {filteredMajors.length ? (
-               filteredMajors.map((m, idx) => {
-                 const selected = form.positionId && (String(form.positionId) === String(m._id ?? m.id));
-                 return (
-                   <button
-                     key={m._id ?? m.name_mn ?? m.name}
-                     type="button"
-                     onClick={() => choosePositionFromIndustry(m)}
-                     className={`w-full text-left px-3 py-2 ${idx===majorActiveIndex? 'bg-slate-700/50 dark:bg-gray-100' : ''} ${selected? 'font-bold' : ''} text-slate-100 dark:text-slate-900 hover:bg-slate-700/50 dark:hover:bg-gray-100`}
-                   >
-                     {m.name_mn || m.name}
-                   </button>
-                 );
-               })
-             ) : (
-               <div className="px-3 py-2 text-sm text-slate-400 dark:text-slate-600">Үр дүн олдсонгүй</div>
-             )}
-           </div>
-         )}
-       </div>
-        
-         {/* Professional level combobox */}
-         <div ref={proLevelRef} className="relative">
+         {/* Salary input */}
+         <div className="space-y-2">
+            <label className="text-sm font-bold text-yellow-300 dark:text-red-600 mb-1 block">Авч буй цалин (₮)</label>
+            <div className="relative group">
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 via-orange-400/10 to-red-500/10 group-focus-within:from-yellow-400/30 group-focus-within:to-red-500/20" />
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                name="salary"
+                value={form.salary}
+                onChange={(e) => {
+                  const rawDigits = e.target.value.replace(/[^0-9]/g, '');
+                  const formatted = rawDigits ? Number(rawDigits).toLocaleString('en-US') : '';
+                  const n = rawDigits ? Number(rawDigits) : 0;
+                  setSalaryOutOfRange(Boolean(n) && (n < SALARY_MIN || n > SALARY_MAX));
+                  setForm((f) => ({ ...f, salary: formatted }));
+                }}
+                onBlur={(e) => {
+                  const rawDigits = e.target.value.replace(/[^0-9]/g, '');
+                  if (!rawDigits) { setSalaryOutOfRange(false); return; }
+                  let n = Number(rawDigits);
+                  if (n < SALARY_MIN) n = SALARY_MIN;
+                  if (n > SALARY_MAX) n = SALARY_MAX;
+                  setSalaryOutOfRange(false);
+                  setForm((f) => ({ ...f, salary: n.toLocaleString('en-US') }));
+                }}
+                className={`relative w-full rounded-2xl border-2 ${salaryOutOfRange ? 'border-red-600 focus:ring-red-600' : 'border-yellow-400 focus:ring-yellow-400'} dark:border-red-600 bg-slate-900/70 dark:bg-white text-slate-100 dark:text-slate-900 px-4 py-3 shadow-[0_0_0_3px_rgba(250,204,21,0.08)] dark:shadow-[0_0_0_3px_rgba(220,38,38,0.08)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 dark:focus:ring-offset-white`}
+                placeholder="жишээ нь 2,500,000"
+              />
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-yellow-300 dark:text-red-600 font-extrabold select-none">₮</div>
+            </div>
+            <div className={`text-xs ${salaryOutOfRange ? 'text-red-500' : 'text-slate-400 dark:text-slate-600'}`}>Хязгаар: {SALARY_MIN.toLocaleString('en-US')} — {SALARY_MAX.toLocaleString('en-US')} ₮</div>
+          </div>
+      {/* Professional level combobox */}
+      {/* <div ref={proLevelRef} className="relative">
             <div className="mb-2 text-sm text-slate-300 dark:text-slate-700">Ажлын түвшин сонгоно уу</div>
             <div
               className={`flex items-center justify-between rounded-xl border px-3 py-2 cursor-text ${proLevelOpen? 'ring-2 ring-blue-500' : ''} border-slate-700 dark:border-gray-300 bg-slate-800 dark:bg-white`}
@@ -1124,7 +1173,7 @@ export default function SalarySection({ compact = false }) {
                 ))}
               </div>
             )}
-          </div>
+      </div>
        <div className="space-y-2">
          <label className="text-sm text-slate-300 dark:text-slate-700 mb-1 block">Ажилласан жил: <span className="ml-1 font-semibold text-slate-100 dark:text-slate-900">{form.years || '1'}</span></label>
          <div className="relative mb-6">
@@ -1136,7 +1185,10 @@ export default function SalarySection({ compact = false }) {
              max="30"
              step="1"
              value={form.years === '' ? 1 : Number(form.years)}
-             onChange={(e) => setForm((f) => ({ ...f, years: String(e.target.value) }))}
+             onChange={(e) => {
+               setForm((f) => ({ ...f, years: String(e.target.value) }));
+               setRangeMoved(true);
+             }}
              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
            />
            <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-0 -bottom-6">1</span>
@@ -1144,10 +1196,15 @@ export default function SalarySection({ compact = false }) {
            <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-2/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">20</span>
            <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute end-0 -bottom-6">30</span>
          </div>
-       </div>
+         {!rangeMoved && (
+           <div className="text-xs text-amber-500 dark:text-amber-400 mt-2 pt-4">
+             ⚠️ Ажилласан жилээ сонгохын тулд slider-ийг хөдөлгөнө үү
+           </div>
+         )}
+       </div> */}
 
       <div className="flex justify-end">
-        <button onClick={submitToBackend2}  className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center text-base font-semibold disabled:opacity-50 disabled:pointer-events-none">{posting ? 'Илгээж байна...' : 'ЦАЛИНГАА ХАРЬЦУУЛАХ'}</button>
+        <button onClick={submitToBackend2} disabled={!canProceedStep2 || posting} className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center text-base font-semibold disabled:opacity-50 disabled:pointer-events-none">{posting ? 'Илгээж байна...' : 'ЦАЛИНГАА ХАРЬЦУУЛАХ'}</button>
       </div>
        {postError && <div className="text-red-500 text-sm text-right">{postError}</div>}
      </div>
@@ -1225,7 +1282,7 @@ export default function SalarySection({ compact = false }) {
       <div className="fixed inset-0 z-[9999]">
         <div className="absolute inset-0 bg-black/60" onClick={() => setPostModalOpen(false)} />
         <div className="relative z-10 flex items-center justify-center min-h-full p-4">
-          <div className="w-[min(92vw,960px)] max-h-[86vh] overflow-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700">
+          <div className="w-[min(96vw,1200px)] max-h-[92vh] overflow-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
                 <img src={logoBlack} alt="Logo" className="h-10 w-10" />
@@ -1233,15 +1290,13 @@ export default function SalarySection({ compact = false }) {
               </div>
               <button onClick={() => setPostModalOpen(false)} className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300" aria-label="Close">✕</button>
             </div>
-            <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700 dark:text-slate-300">
+            <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-700 dark:text-slate-300">
               <div><div className="text-xs uppercase opacity-60">Салбар</div><div className="text-base font-semibold">{form.industry || '—'}</div></div>
-              <div><div className="text-xs uppercase opacity-60">Мэргэжил</div><div className="text-base font-semibold">{form.major || '—'}</div></div>
-              <div><div className="text-xs uppercase opacity-60">Ажлын байр</div><div className="text-base font-semibold">{form.position || '—'}</div></div>
-              <div><div className="text-xs uppercase opacity-60">Түвшин</div><div className="text-base font-semibold">{form.proLevelName || '—'}</div></div>
-              <div><div className="text-xs uppercase opacity-60">Туршлага</div><div className="text-base font-semibold">{form.years || '—'} жил</div></div>
-              {form.salary && (
-                <div className="md:col-span-2"><div className="text-xs uppercase opacity-60">Цалин</div><div className="text-base font-semibold">{form.salary} ₮</div></div>
-              )}
+              <div><div className="text-xs uppercase opacity-60">Албан тушаал</div><div className="text-base font-semibold">{form.position || '—'}</div></div>
+              <div><div className="text-xs uppercase opacity-60">Авч буй цалин</div><div className="text-base font-semibold">{form.salary || '—'} ₮</div></div>
+            </div>
+            <div className="px-6 py-5 border-t border-slate-200 dark:border-slate-700">
+              <PostModalChart form={form} />
             </div>
             <div className="px-6 py-4 flex justify-end gap-3 border-t border-slate-200 dark:border-slate-700">
               <button onClick={() => setPostModalOpen(false)} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">Хаах</button>
@@ -1292,43 +1347,62 @@ export default function SalarySection({ compact = false }) {
 
   if (compact) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-6">
-        <ul className="flex flex-col space-y-3 text-sm font-medium text-gray-400 dark:text-gray-400" role="tablist" aria-orientation="vertical">
-          <li>
+      <div id="salary-section" className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-6">
+        <ul className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-3 text-sm font-medium text-gray-400 dark:text-gray-400 overflow-x-auto md:overflow-visible" role="tablist" aria-orientation="vertical">
+          <li className="flex-shrink-0">
           <button
               type="button"
               onClick={() => setStep(1)}
               aria-selected={step===1}
-              className={`${step===1 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
+              className={`${step===1 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
             >
-              <img src={isDark ? MainWhite : (step==1 ? MainWhite : logoBlack)} alt="Logo" className="h-10 w-10 mr-4" />
+              <img src={isDark ? MainWhite : (step==1 ? MainWhite : logoBlack)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
               {/* <svg className={`${step===2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"><path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/></svg> */}
-              <span className="text-align-center whitespace-pre-line leading-tight">{`ЦАЛИНГАА ОРУУЛ`}</span>
+              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nОРУУЛ`}</span>
             </button>
           </li>
-          <li>
+            <li className="flex-shrink-0 relative group">
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => currentIsUnlocked ? setStep(2) : setStep(1)}
               aria-selected={step===2}
-              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
+              disabled={!currentIsUnlocked}
+              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
             >
-              <img src={isDark ? MainWhite : (step===2 ? MainWhite : logoBlack)} alt="Logo" className="h-10 w-10 mr-4" />
+              <img src={isDark ? MainWhite : (step===2 ? MainWhite : logoBlack)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
               {/* <svg className={`${step===2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"><path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/></svg> */}
-              ЦАЛИНГАА  ХАРЬЦУУЛ
+              {/* <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap leading-tight px-1">{`ЦАЛИНГАА\`} </span> */}
+              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nХАРЬЦУУЛ`}</span>
             </button>
+            {/* Tooltip for disabled state */}
+            {!currentIsUnlocked && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                Эхлээд цалингаа оруулна уу
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+              </div>
+            )}
           </li>
-          <li>
+          <li className="flex-shrink-0 relative group">
             <button
               type="button"
-              onClick={() => setStep(3)}
+              onClick={() => currentIsUnlocked ? setStep(3) : setStep(1)}
               aria-selected={step===3}
-              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
+              disabled={!currentIsUnlocked}
+              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
             >
-               <img src={isDark ? MainWhite : (step===3 ? MainWhite : logoRed1)} alt="Logo" className="h-10 w-10 mr-4" />
+               <img src={isDark ? MainWhite : (step===3 ? MainWhite : logoRed1)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
               {/* <svg className={`${step===3 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M18 7.5h-.423l-.452-1.09.3-.3a1.5 1.5 0 0 0 0-2.121L16.01 2.575a1.5 1.5 0 0 0-2.121 0l-.3.3-1.089-.452V2A1.5 1.5 0 0 0 11 .5H9A1.5 1.5 0 0 0 7.5 2v.423l-1.09.452-.3-.3a1.5 1.5 0 0 0-2.121 0L2.576 3.99a1.5 1.5 0 0 0 0 2.121l.3.3L2.423 7.5H2A1.5 1.5 0 0 0 .5 9v2A1.5 1.5 0 0 0 2 12.5h.423l.452 1.09-.3.3a1.5 1.5 0 0 0 0 2.121l1.415 1.413a1.5 1.5 0 0 0 2.121 0l.3-.3 1.09.452V18A1.5 1.5 0 0 0 9 19.5h2a1.5 1.5 0 0 0 1.5-1.5v-.423l1.09-.452.3.3a1.5 1.5 0 0 0 2.121 0l1.415-1.414a1.5 1.5 0 0 0 0-2.121l-.3-.3.452-1.09H18a1.5 1.5 0 0 0 1.5-1.5V9A1.5 1.5 0 0 0 18 7.5Zm-8 6a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg> */}
-              ЦАЛИНГАА НЭМҮҮЛ
+              {/* <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap leading-tight px-1">ЦАЛИНГАА </span> */}
+              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nНЭМҮҮЛ`}</span>
+            
             </button>
+            {/* Tooltip for disabled state */}
+            {!currentIsUnlocked && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                Эхлээд цалингаа оруулна уу
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+              </div>
+            )}
           </li>
         </ul>
         <div className="flex-1 min-w-0">
@@ -1360,20 +1434,22 @@ export default function SalarySection({ compact = false }) {
           <li>
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => currentIsUnlocked ? setStep(2) : setStep(1)}
               aria-selected={step===2}
-              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
+              disabled={!currentIsUnlocked}
+              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
             >
               <svg className={`${step===2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"><path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/></svg>
-              ЦАЛИНГАА ХАРЬЦУУЛasdads
+              ЦАЛИНГАА ХАРЬЦУУЛ
             </button>
           </li>
           <li>
             <button
               type="button"
-              onClick={() => setStep(3)}
+              onClick={() => currentIsUnlocked ? setStep(3) : setStep(1)}
               aria-selected={step===3}
-              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
+              disabled={!currentIsUnlocked}
+              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex items-center px-4 py-3 rounded-lg w-full transition-colors`}
             >
               <svg className={`${step===3 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M18 7.5h-.423l-.452-1.09.3-.3a1.5 1.5 0 0 0 0-2.121L16.01 2.575a1.5 1.5 0 0 0-2.121 0l-.3.3-1.089-.452V2A1.5 1.5 0 0 0 11 .5H9A1.5 1.5 0 0 0 7.5 2v.423l-1.09.452-.3-.3a1.5 1.5 0 0 0-2.121 0L2.576 3.99a1.5 1.5 0 0 0 0 2.121l.3.3L2.423 7.5H2A1.5 1.5 0 0 0 .5 9v2A1.5 1.5 0 0 0 2 12.5h.423l.452 1.09-.3.3a1.5 1.5 0 0 0 0 2.121l1.415 1.413a1.5 1.5 0 0 0 2.121 0l.3-.3 1.09.452V18A1.5 1.5 0 0 0 9 19.5h2a1.5 1.5 0 0 0 1.5-1.5v-.423l1.09-.452.3.3a1.5 1.5 0 0 0 2.121 0l1.415-1.414a1.5 1.5 0 0 0 0-2.121l-.3-.3.452-1.09H18a1.5 1.5 0 0 0 1.5-1.5V9A1.5 1.5 0 0 0 18 7.5Zm-8 6a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg>
               ЦАЛИНГАА НЭМ

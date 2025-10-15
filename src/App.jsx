@@ -26,11 +26,61 @@ export default function App() {
     const el = document.getElementById('salary-section');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  
+  const handleUnlockClick = () => {
+    console.log('🔓 Unlock button clicked!');
+    console.log('Current isUnlocked:', isUnlocked);
+    console.log('Current salary count:', localStorage.getItem('salarySubmissionCount'));
+    
+    // Hide the overlay immediately (session only)
+    console.log('Hiding overlay...');
+    setIsUnlocked(true);
+    
+    // Force step to 1
+    console.log('Setting forceStep1 to true...');
+    setForceStep1(true);
+    
+    // Scroll to salary section
+    console.log('Starting scroll in 100ms...');
+    setTimeout(() => {
+      const el = document.getElementById('salary-section');
+      if (el) {
+        console.log('✅ Found salary-section element, scrolling...');
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.log('❌ Salary section not found, scrolling to top');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
+  };
   const [isFormActive, setIsFormActive] = React.useState(false);
   const [salaryPosts, setSalaryPosts] = React.useState([]);
   const [salaryPostsError, setSalaryPostsError] = React.useState('');
   const [filterSource, setFilterSource] = React.useState('');
   const [filterVerified, setFilterVerified] = React.useState(''); // '', 'verified', 'not_verified'
+  const [isUnlocked, setIsUnlocked] = React.useState(false);
+  const [forceStep1, setForceStep1] = React.useState(false);
+
+  // Check unlock status from localStorage based on salary submission counter
+  React.useEffect(() => {
+    const salaryCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
+    const unlocked = salaryCount >= 1;
+    console.log('Salary submission count:', salaryCount, 'Unlocked:', unlocked);
+    setIsUnlocked(unlocked);
+  }, []);
+
+  // Listen for salary submission events from SalarySection
+  React.useEffect(() => {
+    const handleSalarySubmitted = () => {
+      const salaryCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
+      const unlocked = salaryCount >= 1;
+      console.log('Salary submitted, count:', salaryCount, 'Unlocked:', unlocked);
+      setIsUnlocked(unlocked);
+    };
+
+    window.addEventListener('salarySubmitted', handleSalarySubmitted);
+    return () => window.removeEventListener('salarySubmitted', handleSalarySubmitted);
+  }, []);
 
   // Helpers
   const formatCurrency = (num) => {
@@ -106,10 +156,46 @@ export default function App() {
   posts.forEach((p, i) => { cols[i % columnsCount].push(p); });
 
   return (
-    <div className="app min-h-screen overflow-x-hidden md:overflow-x-hidden">
-      <Header onPostClick={handlePostClick} />
+    <div className="app min-h-screen overflow-x-hidden md:overflow-x-hidden relative">
+      <div className={`transition-all duration-300 ${!isUnlocked ? 'blur-sm pointer-events-none' : ''}`}>
+        <Header onPostClick={handlePostClick} onUnlockClick={handleUnlockClick} isUnlocked={isUnlocked} />
+      </div>
 
-      <main className="w-full">
+      {/* Blur Overlay - shows when not unlocked */}
+      {!isUnlocked && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center pointer-events-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 max-w-lg mx-4 shadow-2xl text-center">
+            <div className="mb-8">
+              <div className="text-7xl mb-6">🔒</div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Монголын цалингийн ил тод байдлыг хамтдаа сайжруулъя
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+                Мэдээллээ оруулснаар илүү олон функц, гүнзгий шинжилгээ болон цалингийн харьцуулалт нээх болно.
+              </p>
+            </div>
+            
+            <button
+              onClick={() => {
+                console.log('🎯 Overlay button clicked!');
+                handleUnlockClick();
+              }}
+              className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 text-xl"
+            >
+              ЦАЛИНГАА ОРУУЛ
+            </button>
+            
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-6 flex items-start justify-center gap-2 max-w-md mx-auto">
+              <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+              </svg>
+              <span className="text-left">Бүх мэдээлэл таны нэр, байгууллагын нэрээс ангид, бүрэн нууцлалтай хадгалагдана.</span>
+            </p>
+          </div>
+        </div>
+      )}
+
+      <main className={`w-full transition-all duration-300 ${!isUnlocked ? 'blur-sm pointer-events-none' : ''}`}>
         {/* Salary posts area with form and stats (matches mock) */}
         <section className="relative w-full h-auto lg:h-[calc(100vh-5rem)] overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
           <div className="px-[40px] w-full mx-auto py-6">
@@ -119,7 +205,7 @@ export default function App() {
                 <div className="px-0" onMouseDown={(e)=>{ e.stopPropagation(); setIsFormActive(true); }}>
                   <div className="lg:sticky lg:top-4">
                     {/* <SalaryTab/> */}
-                    <SalarySection compact />
+                    <SalarySection compact isUnlocked={isUnlocked} setIsUnlocked={setIsUnlocked} forceStep1={forceStep1} setForceStep1={setForceStep1} />
                   </div>
                 </div>
 
