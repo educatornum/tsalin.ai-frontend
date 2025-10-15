@@ -36,6 +36,10 @@ if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
     docker network create $NETWORK_NAME
 fi
 
+# Connect backend to network if not already connected
+echo -e "${YELLOW}🔗 Connecting backend to network...${NC}"
+docker network connect $NETWORK_NAME tsalin-api 2>/dev/null || echo "Backend already on network"
+
 # Run new container
 echo -e "${YELLOW}🚀 Starting new container...${NC}"
 docker run -d \
