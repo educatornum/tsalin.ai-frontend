@@ -19,9 +19,17 @@ echo -e "${YELLOW}🔧 Fixing nginx configuration...${NC}"
 cp nginx-fix.conf nginx.conf
 
 # Step 2: Install Certbot if not installed
-echo -e "${YELLOW}📦 Installing Certbot...${NC}"
-sudo apt update
-sudo apt install -y certbot
+echo -e "${YELLOW}📦 Checking Certbot...${NC}"
+if ! command -v certbot &> /dev/null; then
+    echo -e "${YELLOW}Installing Certbot via snap...${NC}"
+    sudo apt update
+    sudo apt install -y snapd
+    sudo snap install core
+    sudo snap refresh core
+    sudo snap install --classic certbot
+    sudo ln -sf /snap/bin/certbot /usr/bin/certbot
+fi
+certbot --version
 
 # Step 3: Stop ALL containers using port 80
 echo -e "${YELLOW}🛑 Stopping all containers on port 80...${NC}"
