@@ -33,7 +33,7 @@ docker rm $CONTAINER_NAME 2>/dev/null || true
 echo -e "${YELLOW}🚀 Starting new container...${NC}"
 docker run -d \
     --name $CONTAINER_NAME \
-    -p $PORT:80 \
+    --network host \
     --restart unless-stopped \
     $IMAGE_NAME
 
