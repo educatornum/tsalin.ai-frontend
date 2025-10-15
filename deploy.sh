@@ -29,11 +29,19 @@ echo -e "${YELLOW}🛑 Stopping existing container...${NC}"
 docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
+# Create/ensure network exists
+NETWORK_NAME="tsalin-network"
+if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
+    echo -e "${YELLOW}📡 Creating Docker network: $NETWORK_NAME${NC}"
+    docker network create $NETWORK_NAME
+fi
+
 # Run new container
 echo -e "${YELLOW}🚀 Starting new container...${NC}"
 docker run -d \
     --name $CONTAINER_NAME \
-    --network host \
+    -p $PORT:80 \
+    --network $NETWORK_NAME \
     --restart unless-stopped \
     $IMAGE_NAME
 
