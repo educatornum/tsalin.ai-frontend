@@ -253,8 +253,19 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* No data message */}
+                  {!salaryPostsLoading && salaryPosts.length === 0 && (
+                    <div className="flex items-center justify-center h-64 px-4">
+                      <div className="text-center max-w-sm">
+                        <div className="text-5xl sm:text-6xl mb-4">📭</div>
+                        <p className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Дата олдсонгүй</p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Өөр шүүлт сонгож үзээрэй</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Animated columns - 4 max */}
-                  {!salaryPostsLoading && (
+                  {!salaryPostsLoading && salaryPosts.length > 0 && (
                     <div className={`transition ${isFormActive? 'blur-[2px]' : ''}`}>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-auto lg:h-[75vh] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] overflow-hidden content-start">
                       {/* Column 1 */}

@@ -49,7 +49,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
   const SALARY_MIN = 792000; // ₮
   const SALARY_MAX = 20000000; // ₮
   const [salaryOutOfRange, setSalaryOutOfRange] = React.useState(false);
-  const [rangeMoved, setRangeMoved] = React.useState(false);
+  const [rangeMoved, setRangeMoved] = React.useState(true); // Start as true since slider has default value
   const yearsOptions = React.useMemo(() => Array.from({ length: 30 }, (_, i) => i + 1), []);
 
   // Unlock state management
@@ -69,10 +69,10 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
     setCurrentIsUnlocked(unlocked);
   }, []);
 
-  // Reset rangeMoved when step changes
+  // Reset rangeMoved when step changes, but only if years is not the default value
   React.useEffect(() => {
-    setRangeMoved(false);
-  }, [step]);
+    setRangeMoved(form.years !== '1');
+  }, [step, form.years]);
 
   // Handle forceStep1 prop
   React.useEffect(() => {
@@ -745,37 +745,14 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
 
       {/* Upload & analyze controls */}
       <div className="space-y-2 pt-2">
-        <div className="md:col-span-2 flex flex-col gap-2">
-          <button onClick={uploadAndAnalyze} disabled={!form.file || uploading || analyzing} className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center text-base font-semibold disabled:opacity-50 transition-all">
-            {uploadStatus || 'Файл илгээх'}
+        <div className="md:col-span-2 flex flex-col gap-3">
+          <button onClick={uploadAndAnalyze} disabled={!form.file || uploading || analyzing} className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center gap-2 text-base font-semibold disabled:opacity-50 transition-all">
+            {(uploading || analyzing) && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+            )}
+            <span>{uploadStatus || 'Файл илгээх'}</span>
           </button>
-          {uploadStatus && (
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-              <span>{uploadStatus}</span>
-            </div>
-          )}
         </div>
-        {/* <div className="text-xs text-slate-400 dark:text-slate-600 space-y-1">
-          <div className={`${(!uploading && !analyzing) ? 'text-slate-200 dark:text-slate-800 font-medium' : ''}`}>1. Файл илгээх.</div>
-          <div className={`${uploading ? 'text-slate-200 dark:text-slate-800 font-medium' : ''}`}>2. Илгээж байна.</div>
-          <div className={`${analyzing ? 'text-slate-200 dark:text-slate-800 font-medium' : ''}`}>3. Таньд тохирох ажлын саналыг боловсруулж байна.</div>
-        </div>
-        {uploadResult && (
-          <div className="rounded-2xl border border-slate-700 dark:border-gray-300 bg-slate-800/40 dark:bg-white/60 px-4 py-3 text-xs text-slate-300 dark:text-slate-700 space-y-1">
-            <div><span className="opacity-70">success:</span> <span>{String(uploadResult.success ?? true)}</span></div>
-            <div><span className="opacity-70">bucket:</span> <span>{uploadResult.bucket || '—'}</span></div>
-            <div><span className="opacity-70">key:</span> <span className="break-all">{uploadResult.key || '—'}</span></div>
-            <div><span className="opacity-70">url:</span> <span className="break-all">{uploadResult.url || '—'}</span></div>
-            <div><span className="opacity-70">cdnUrl:</span> <span className="break-all">{uploadResult.cdnUrl || '—'}</span></div>
-            <div className="flex gap-4 flex-wrap">
-              <span className="opacity-70">size:</span>
-              <span>{uploadResult.size ? `${(uploadResult.size/1024/1024).toFixed(2)} MB (${uploadResult.size} bytes)` : '—'}</span>
-              <span className="opacity-70">contentType:</span>
-              <span>{uploadResult.contentType || '—'}</span>
-            </div>
-          </div>
-        )} */}
         {(uploadError || analyzeError) && (<div className="text-red-500 text-sm">{uploadError || analyzeError}</div>)}
       </div>
     </div>
@@ -1012,7 +989,12 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-slate-300 dark:text-slate-700 mb-1 block">Ажилласан жил: <span className="ml-1 font-semibold text-slate-100 dark:text-slate-900">{form.years || '1'}</span></label>
+            <label className="text-base font-medium text-slate-300 dark:text-slate-700 mb-2 block">
+              Ажилласан жил: 
+              <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                {form.years || '1'} жил
+              </span>
+            </label>
             <div className="relative mb-6">
               <label htmlFor="years-range-step2" className="sr-only">Years range</label>
               <input
@@ -1026,7 +1008,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
                   setForm((f) => ({ ...f, years: String(e.target.value) }));
                   setRangeMoved(true);
                 }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#fbd433] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#fbd433] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-track]:bg-gray-300 [&::-moz-range-track]:dark:bg-gray-600 [&::-moz-range-track]:rounded-lg [&::-moz-range-track]:h-2"
               />
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-0 -bottom-6">1</span>
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute start-1/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">10</span>
@@ -1034,7 +1016,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
               <span className="text-[10px] text-slate-400 dark:text-slate-600 absolute end-0 -bottom-6">30</span>
             </div>
             {!rangeMoved && (
-              <div className="text-xs text-amber-500 dark:text-amber-400 mt-2 pt-4">
+              <div className="text-xs text-amber-600 dark:text-amber-600 mt-2 pt-6">
                 ⚠️ Ажилласан жилээ сонгохын тулд slider-ийг хөдөлгөнө үү
               </div>
             )}
@@ -1192,7 +1174,12 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
             )}
       </div>
        <div className="space-y-2">
-         <label className="text-sm text-slate-300 dark:text-slate-700 mb-1 block">Ажилласан жил: <span className="ml-1 font-semibold text-slate-100 dark:text-slate-900">{form.years || '1'}</span></label>
+         <label className="text-base font-medium text-slate-300 dark:text-slate-700 mb-2 block">
+           Ажилласан жил: 
+           <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+             {form.years || '1'} жил
+           </span>
+         </label>
          <div className="relative mb-6">
            <label htmlFor="years-range-step2" className="sr-only">Years range</label>
            <input
