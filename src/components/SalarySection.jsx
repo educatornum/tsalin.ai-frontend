@@ -104,7 +104,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
   const fetchPositionsForIndustryLocal = React.useCallback(async (industryId) => {
     if (!industryId) { setPositionsForIndustry([]); return; }
     try {
-      const res = await fetch(`https://tsalin-ai.onrender.com/api/industries/${industryId}/positions`);
+      const res = await fetch(`/api/industries/${industryId}/positions`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
@@ -132,7 +132,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
         setIndustriesLoading(true);
         setIndustriesError('');
         // Load industries WITH majors
-        const res = await fetch('https://tsalin-ai.onrender.com/api/majors');
+        const res = await fetch('/api/majors');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         // Expected shape: { success, count, industries: [...] }
@@ -168,7 +168,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       setIndustriesStep2Error('');
       try {
         // Use plural endpoint as the single source for Step 2
-        const res = await fetch('https://tsalin-ai.onrender.com/api/industries/positions');
+        const res = await fetch('/api/industries/positions');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setIndustriesStep2(extractList(data));
@@ -189,7 +189,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       try {
         setProLevelsLoading(true);
         setProLevelsError('');
-        const res = await fetch('https://tsalin-ai.onrender.com/api/pro-levels');
+        const res = await fetch('/api/pro-levels');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
@@ -213,7 +213,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       try {
         setPositionsLoading(true);
         setPositionsError('');
-        const res = await fetch('https://tsalin-ai.onrender.com/api/positions');
+        const res = await fetch('/api/positions');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const list = Array.isArray(data?.positions)
@@ -288,7 +288,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
   // Helper: call AI analyze endpoint with a URL
   const doAnalyzeResumeUrl = async (url) => {
     const normalizedUrl = (url || '').replace(/^https:\/\//i, 'http://');
-    const aiRes = await fetch('https://tsalin-ai.onrender.com/api/ai/claude/analyze-resume', {
+    const aiRes = await fetch('/api/ai/claude/analyze-resume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resumeUrl: normalizedUrl })
@@ -309,7 +309,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       setUploadError('');
       const fd = new FormData();
       fd.append('file', form.file);
-      const res = await fetch('https://tsalin-ai.onrender.com/api/upload/cv', { method: 'POST', body: fd });
+      const res = await fetch('/api/upload/cv', { method: 'POST', body: fd });
       if (!res.ok) throw new Error(`Upload HTTP ${res.status}`);
       const data = await res.json();
       const base = getCdnBase();
@@ -333,7 +333,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       setAnalyzeError('');
       const fd = new FormData();
       fd.append('file', form.file);
-      const uploadRes = await fetch('https://tsalin-ai.onrender.com/api/upload/cv', { method: 'POST', body: fd });
+      const uploadRes = await fetch('/api/upload/cv', { method: 'POST', body: fd });
       if (!uploadRes.ok) throw new Error(`Upload HTTP ${uploadRes.status}`);
       const uploadData = await uploadRes.json();
       const resumeUrlUploaded = uploadData?.url;
@@ -450,7 +450,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       // Upload
       const fd = new FormData();
       fd.append('file', form.file);
-      const res = await fetch('https://tsalin-ai.onrender.com/api/upload/cv', { method: 'POST', body: fd });
+      const res = await fetch('/api/upload/cv', { method: 'POST', body: fd });
       if (!res.ok) throw new Error(`Upload HTTP ${res.status}`);
       const data = await res.json();
       const base = getCdnBase();
@@ -799,7 +799,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
         experience_years: Number((form.years || '0').replace(/[^0-9]/g, '')),
         is_verified: false
       };
-      const res = await fetch('https://tsalin-ai.onrender.com/api/salary-posts', {
+      const res = await fetch('/api/salary-posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

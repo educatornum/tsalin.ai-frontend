@@ -67,7 +67,7 @@ export default function PostModalChart({ form }) {
       setError('');
       
       try {
-        const response = await fetch('https://tsalin-ai.onrender.com/api/salary-posts/summary', {
+        const response = await fetch('/api/salary-posts/summary', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

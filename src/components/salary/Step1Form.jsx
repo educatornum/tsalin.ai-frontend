@@ -43,7 +43,7 @@ export default function Step1Form({
       try {
         setPositionsLoading(true);
         setPositionsError('');
-        const res = await fetch('https://tsalin-ai.onrender.com/api/positions');
+        const res = await fetch('/api/positions');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
@@ -64,7 +64,7 @@ export default function Step1Form({
       try {
         setProLevelsLoading(true);
         setProLevelsError('');
-        const res = await fetch('https://tsalin-ai.onrender.com/api/pro-levels');
+        const res = await fetch('/api/pro-levels');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);

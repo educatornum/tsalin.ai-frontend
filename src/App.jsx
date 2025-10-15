@@ -122,7 +122,7 @@ export default function App() {
       if (verifiedFilter === 'verified') params.set('is_verified', 'true');
       if (verifiedFilter === 'not_verified') params.set('is_verified', 'false');
       const q = params.toString();
-      const res = await fetch(`https://tsalin-ai.onrender.com/api/salary-posts${q ? `?${q}` : ''}`);
+      const res = await fetch(`/api/salary-posts${q ? `?${q}` : ''}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);

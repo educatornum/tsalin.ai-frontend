@@ -7,13 +7,9 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Production: use your backend URL
+  // Production: use relative path (nginx will proxy to backend)
   if (import.meta.env.MODE === 'production') {
-    // OPTION 1: Backend on same server, different port
-    return 'http://35.198.155.219:3000';
-    
-    // OPTION 2: Backend on subdomain (uncomment when ready)
-    // return 'https://api.tsalin.ai';
+    return ''; // Use relative URLs like /api/... (nginx proxies to backend)
   }
   
   // Development: use localhost
