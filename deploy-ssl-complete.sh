@@ -23,10 +23,26 @@ echo -e "${YELLOW}📦 Installing Certbot...${NC}"
 sudo apt update
 sudo apt install -y certbot
 
-# Step 3: Stop any existing containers
-echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"
+# Step 3: Stop ALL containers using port 80
+echo -e "${YELLOW}🛑 Stopping all containers on port 80...${NC}"
+sudo docker ps -q --filter "publish=80" | xargs -r sudo docker stop
+sudo docker ps -aq --filter "publish=80" | xargs -r sudo docker rm
 sudo docker stop $CONTAINER_NAME 2>/dev/null || true
 sudo docker rm $CONTAINER_NAME 2>/dev/null || true
+
+# Wait a moment for ports to free up
+sleep 2
+
+# Verify port 80 is free
+echo -e "${YELLOW}🔍 Checking if port 80 is free...${NC}"
+if sudo netstat -tuln | grep ':80 ' > /dev/null; then
+    echo -e "${RED}❌ Port 80 is still in use!${NC}"
+    echo -e "${YELLOW}Processes using port 80:${NC}"
+    sudo netstat -tuln | grep ':80 '
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Port 80 is free!${NC}"
 
 # Step 4: Build Docker image
 echo -e "${YELLOW}📦 Building Docker image...${NC}"
@@ -45,14 +61,30 @@ sudo certbot certonly --standalone \
   -d $DOMAIN \
   --email $EMAIL \
   --agree-tos \
-  --no-eff-email
+  --no-eff-email \
+  --non-interactive
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ SSL certificate failed!${NC}"
     echo -e "${YELLOW}Make sure:${NC}"
-    echo -e "${YELLOW}1. DNS A record points to this server${NC}"
-    echo -e "${YELLOW}2. Port 80 is available${NC}"
-    echo -e "${YELLOW}3. Domain is accessible${NC}"
+    echo -e "${YELLOW}1. DNS A record points to this server (34.107.5.242)${NC}"
+    echo -e "${YELLOW}2. Port 80 is accessible from the internet${NC}"
+    echo -e "${YELLOW}3. Domain beta.tsalin.ai resolves correctly${NC}"
+    echo -e "${YELLOW}${NC}"
+    echo -e "${YELLOW}Check DNS:${NC}"
+    nslookup $DOMAIN
+    echo -e "${YELLOW}${NC}"
+    echo -e "${YELLOW}Deploying without SSL for now...${NC}"
+    
+    # Deploy without SSL
+    sudo docker run -d \
+        --name $CONTAINER_NAME \
+        -p 80:80 \
+        --restart unless-stopped \
+        $IMAGE_NAME
+    
+    echo -e "${YELLOW}⚠️  Site is running on HTTP only${NC}"
+    echo -e "${YELLOW}   http://$DOMAIN${NC}"
     exit 1
 fi
 
@@ -64,14 +96,14 @@ cat > nginx.conf << 'EOF'
 # HTTP - redirect to HTTPS
 server {
     listen 80;
-    server_name beta.tsalin.ai 35.198.155.219;
+    server_name beta.tsalin.ai 34.107.5.242;
     return 301 https://$host$request_uri;
 }
 
 # HTTPS
 server {
     listen 443 ssl http2;
-    server_name beta.tsalin.ai 35.198.155.219;
+    server_name beta.tsalin.ai 34.107.5.242;
     root /usr/share/nginx/html;
     index index.html;
 
@@ -92,7 +124,7 @@ server {
 
     # Proxy API requests to backend using server IP
     location /api/ {
-        proxy_pass http://35.198.155.219:3000/api/;
+        proxy_pass http://34.107.5.242:3000/api/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -153,7 +185,7 @@ echo -e "${GREEN}   HTTPS: https://$DOMAIN${NC}"
 
 # Step 9: Setup auto-renewal
 echo -e "${YELLOW}🔄 Setting up SSL auto-renewal...${NC}"
-(crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet") | crontab -
+(crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet && docker restart $CONTAINER_NAME") | crontab -
 
 echo -e "${GREEN}✅ SSL auto-renewal configured!${NC}"
 
