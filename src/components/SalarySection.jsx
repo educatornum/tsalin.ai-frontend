@@ -839,9 +839,9 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
   };
 
   const cardInner = (
-    <div className="bg-[#020202] text-white dark:bg-white dark:text-slate-900 backdrop-blur-xl border border-slate-800/70 dark:border-gray-200/70 rounded-3xl px-5 py-6 sm:px-8 md:px-12 shadow-xl transition duration-300 ease-out hover:shadow-2xl hover:ring-2 hover:ring-blue-500 hover:-translate-y-0.5">
+    <div className="bg-[#020202] text-white dark:bg-white dark:text-slate-900 backdrop-blur-xl border border-slate-800/70 dark:border-gray-200/70 rounded-3xl px-4 py-5 sm:px-6 md:px-8 lg:px-6 xl:px-8 shadow-xl transition duration-300 ease-out hover:shadow-2xl hover:ring-2 hover:ring-blue-500 hover:-translate-y-0.5 max-w-full overflow-hidden">
       <StepIndicator />
-      <h2 className="font-firs text-2xl sm:text-3xl md:text-4xl leading-tight tracking-tight font-extrabold mb-3 text-slate-100 dark:text-slate-900">{step===1?'ТА ХЭДЭН ТӨГРӨГНИЙ ЦАЛИН АВДАГ ВЭ?':step===2?'ТА ХЭР ШУДАРГА ЦАЛИН АВЧ БАЙГАА ВЭ':'RESUME ОРУУЛААД БОЛОМЖИТ ЦАЛИНГАА БОДУУЛААРАЙ'}</h2>
+      <h2 className="font-firs text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl leading-tight tracking-tight font-extrabold mb-3 text-slate-100 dark:text-slate-900 break-words">{step===1?'ТА ХЭДЭН ТӨГРӨГНИЙ ЦАЛИН АВДАГ ВЭ?':step===2?'ТА ХЭР ШУДАРГА ЦАЛИН АВЧ БАЙГАА ВЭ':'RESUME ОРУУЛААД БОЛОМЖИТ ЦАЛИНГАА БОДУУЛААРАЙ'}</h2>
       {/* <p className="text-slate-300 dark:text-slate-600 mb-6">Бид таны боломжит цалинг тооцолж өгөх боломжтой.</p> */}
 
       {step === 1 && (
@@ -1351,18 +1351,17 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
 
   if (compact) {
     return (
-      <div id="salary-section" className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-6">
-        <ul className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-3 text-sm font-medium text-gray-400 dark:text-gray-400 overflow-x-auto md:overflow-visible" role="tablist" aria-orientation="vertical">
+      <div id="salary-section" className="grid grid-cols-1 lg:grid-cols-[180px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)] gap-4 lg:gap-6">
+        <ul className="flex flex-row lg:flex-col space-x-2 lg:space-x-0 lg:space-y-3 text-sm font-medium text-gray-400 dark:text-gray-400 overflow-x-auto lg:overflow-visible" role="tablist" aria-orientation="vertical">
           <li className="flex-shrink-0">
           <button
               type="button"
               onClick={() => setStep(1)}
               aria-selected={step===1}
-              className={`${step===1 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
+              className={`${step===1 ? 'text-white bg-red-600 dark:bg-red-600' : 'text-gray-500 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col lg:flex-row items-center px-3 lg:px-3 py-3 lg:py-2 rounded-lg min-w-[90px] lg:w-full transition-colors`}
             >
-              <img src={isDark ? MainWhite : (step==1 ? MainWhite : logoBlack)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
-              {/* <svg className={`${step===2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"><path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/></svg> */}
-              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nОРУУЛ`}</span>
+              <img src={isDark ? MainWhite : (step==1 ? MainWhite : logoBlack)} alt="Logo" className="h-7 w-7 lg:h-10 lg:w-10 mb-1 lg:mb-0 lg:mr-4" />
+              <span className="text-xs lg:text-sm text-center lg:text-left whitespace-nowrap lg:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nОРУУЛ`}</span>
             </button>
           </li>
             <li className="flex-shrink-0 relative group">
@@ -1371,12 +1370,10 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
               onClick={() => currentIsUnlocked ? setStep(2) : setStep(1)}
               aria-selected={step===2}
               disabled={!currentIsUnlocked}
-              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
+              className={`${step===2 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col lg:flex-row items-center px-3 lg:px-3 py-3 lg:py-2 rounded-lg min-w-[90px] lg:w-full transition-colors`}
             >
-              <img src={isDark ? MainWhite : (step===2 ? MainWhite : logoBlack)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
-              {/* <svg className={`${step===2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"><path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/></svg> */}
-              {/* <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap leading-tight px-1">{`ЦАЛИНГАА\`} </span> */}
-              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nХАРЬЦУУЛ`}</span>
+              <img src={isDark ? MainWhite : (step===2 ? MainWhite : logoBlack)} alt="Logo" className="h-7 w-7 lg:h-10 lg:w-10 mb-1 lg:mb-0 lg:mr-4" />
+              <span className="text-xs lg:text-sm text-center lg:text-left whitespace-nowrap lg:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nХАРЬЦУУЛ`}</span>
             </button>
             {/* Tooltip for disabled state */}
             {!currentIsUnlocked && (
@@ -1392,12 +1389,10 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
               onClick={() => currentIsUnlocked ? setStep(3) : setStep(1)}
               aria-selected={step===3}
               disabled={!currentIsUnlocked}
-              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col md:flex-row items-center px-4 md:px-3 py-3 md:py-2 rounded-lg min-w-[100px] md:w-full transition-colors`}
+              className={`${step===3 ? 'text-white bg-red-600 dark:bg-red-600' : !currentIsUnlocked ? 'text-gray-400 bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white'} inline-flex flex-col lg:flex-row items-center px-3 lg:px-3 py-3 lg:py-2 rounded-lg min-w-[90px] lg:w-full transition-colors`}
             >
-               <img src={isDark ? MainWhite : (step===3 ? MainWhite : logoRed1)} alt="Logo" className="h-8 w-8 md:h-10 md:w-10 mb-1 md:mb-0 md:mr-4" />
-              {/* <svg className={`${step===3 ? 'text-white' : 'text-gray-500 dark:text-gray-400'} w-4 h-4 mr-2`} aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M18 7.5h-.423l-.452-1.09.3-.3a1.5 1.5 0 0 0 0-2.121L16.01 2.575a1.5 1.5 0 0 0-2.121 0l-.3.3-1.089-.452V2A1.5 1.5 0 0 0 11 .5H9A1.5 1.5 0 0 0 7.5 2v.423l-1.09.452-.3-.3a1.5 1.5 0 0 0-2.121 0L2.576 3.99a1.5 1.5 0 0 0 0 2.121l.3.3L2.423 7.5H2A1.5 1.5 0 0 0 .5 9v2A1.5 1.5 0 0 0 2 12.5h.423l.452 1.09-.3.3a1.5 1.5 0 0 0 0 2.121l1.415 1.413a1.5 1.5 0 0 0 2.121 0l.3-.3 1.09.452V18A1.5 1.5 0 0 0 9 19.5h2a1.5 1.5 0 0 0 1.5-1.5v-.423l1.09-.452.3.3a1.5 1.5 0 0 0 2.121 0l1.415-1.414a1.5 1.5 0 0 0 0-2.121l-.3-.3.452-1.09H18a1.5 1.5 0 0 0 1.5-1.5V9A1.5 1.5 0 0 0 18 7.5Zm-8 6a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg> */}
-              {/* <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap leading-tight px-1">ЦАЛИНГАА </span> */}
-              <span className="text-xs md:text-sm text-center md:text-left whitespace-nowrap md:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nНЭМҮҮЛ`}</span>
+               <img src={isDark ? MainWhite : (step===3 ? MainWhite : logoRed1)} alt="Logo" className="h-7 w-7 lg:h-10 lg:w-10 mb-1 lg:mb-0 lg:mr-4" />
+              <span className="text-xs lg:text-sm text-center lg:text-left whitespace-nowrap lg:whitespace-pre-line leading-tight px-1">{`ЦАЛИНГАА\nНЭМҮҮЛ`}</span>
             
             </button>
             {/* Tooltip for disabled state */}

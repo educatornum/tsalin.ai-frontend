@@ -204,7 +204,7 @@ export default function App() {
         <section className="relative w-full h-auto lg:h-[calc(100vh-5rem)] overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
           <div className="px-[40px] w-full mx-auto py-6">
             <div className="relative rounded-none border-0 bg-transparent shadow-none p-0">
-              <div className="grid grid-cols-1 md:grid-cols-[45%_55%] gap-2">
+              <div className="grid grid-cols-1 lg:grid-cols-[40%_60%] xl:grid-cols-[35%_65%] gap-4 lg:gap-6">
                 {/* Left column: form */}
                 <div className="px-0" onMouseDown={(e)=>{ e.stopPropagation(); setIsFormActive(true); }}>
                   <div className="lg:sticky lg:top-4">
@@ -267,7 +267,7 @@ export default function App() {
                   {/* Animated columns - 4 max */}
                   {!salaryPostsLoading && salaryPosts.length > 0 && (
                     <div className={`transition ${isFormActive? 'blur-[2px]' : ''}`}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-auto lg:h-[75vh] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] overflow-hidden content-start">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 h-auto lg:h-[75vh] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] overflow-hidden content-start">
                       {/* Column 1 */}
                       <ul className={`space-y-4 animate-scroll hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
                         {cols[0].map((job, idx) => (
@@ -281,13 +281,13 @@ export default function App() {
                         ))}
                       </ul>
                       {/* Column 3 */}
-                      <ul className={`hidden md:block space-y-4 animate-scroll hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
+                      <ul className={`hidden lg:block space-y-4 animate-scroll hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
                         {cols[2].map((job, idx) => (
                           <li key={`c3-${idx}`} onClick={()=>openJob(job)}><JobCard job={job} enter={false} /></li>
                         ))}
                       </ul>
                       {/* Column 4 */}
-                      <ul className={`hidden lg:block space-y-4 animate-scroll-reverse sm:mt-24 hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
+                      <ul className={`hidden xl:block space-y-4 animate-scroll-reverse sm:mt-24 hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
                         {cols[3].map((job, idx) => (
                           <li key={`c4-${idx}`} onClick={()=>openJob(job)}><JobCard job={job} enter={false} /></li>
                         ))}

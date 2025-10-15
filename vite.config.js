@@ -5,20 +5,20 @@ import react from '@vitejs/plugin-react';
 // Adjust if your repository name differs
 export default defineConfig({
   plugins: [react()],
-  base: '/'
+  base: '/',
 // local дээрээ proxy-лэх
-//   server: {
-//     proxy: {
-//       '/api': {
-//         target: process.env.VITE_API_URL || 'http://localhost:3000',
-//         changeOrigin: true,
-//         secure: false,
-//         configure: (proxy, options) => {
-//           console.log(`🔧 API Proxy: ${options.target}`);
-//         }
-//       }
-//     }
-//   }
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          console.log(`🔧 API Proxy: ${options.target}`);
+        }
+      }
+    }
+  }
 });
 
 

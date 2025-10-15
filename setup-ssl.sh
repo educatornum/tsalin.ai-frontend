@@ -3,11 +3,10 @@
 # Setup SSL with Let's Encrypt for tsalin.ai
 # Run this AFTER DNS has propagated (wait 30 minutes after setting up DNS)
 
-DOMAIN="tsalin.ai"
-WWW_DOMAIN="www.tsalin.ai"
-EMAIL="your-email@example.com"  # Change this to your email
+DOMAIN="beta.tsalin.ai"
+EMAIL="bayar@lambda.global"  # Change this to your email
 
-echo "🔒 Setting up SSL for $DOMAIN and $WWW_DOMAIN"
+echo "🔒 Setting up SSL for $DOMAIN"
 
 # Install certbot
 sudo apt update
@@ -19,7 +18,6 @@ docker stop tsalin-frontend
 # Get SSL certificate
 sudo certbot certonly --standalone \
   -d $DOMAIN \
-  -d $WWW_DOMAIN \
   --email $EMAIL \
   --agree-tos \
   --no-eff-email
@@ -29,20 +27,20 @@ cat > nginx-ssl.conf << 'EOF'
 # HTTP - redirect to HTTPS
 server {
     listen 80;
-    server_name tsalin.ai www.tsalin.ai;
+    server_name beta.tsalin.ai;
     return 301 https://$host$request_uri;
 }
 
 # HTTPS
 server {
     listen 443 ssl http2;
-    server_name tsalin.ai www.tsalin.ai;
+    server_name beta.tsalin.ai;
     root /usr/share/nginx/html;
     index index.html;
 
     # SSL certificates
-    ssl_certificate /etc/letsencrypt/live/tsalin.ai/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/tsalin.ai/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/beta.tsalin.ai/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/beta.tsalin.ai/privkey.pem;
 
     # SSL configuration
     ssl_protocols TLSv1.2 TLSv1.3;
