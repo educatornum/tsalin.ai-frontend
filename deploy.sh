@@ -34,7 +34,6 @@ echo -e "${YELLOW}🚀 Starting new container...${NC}"
 docker run -d \
     --name $CONTAINER_NAME \
     -p $PORT:80 \
-    --add-host=host.docker.internal:host-gateway \
     --restart unless-stopped \
     $IMAGE_NAME
 
