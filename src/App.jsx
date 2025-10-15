@@ -55,6 +55,7 @@ export default function App() {
   };
   const [isFormActive, setIsFormActive] = React.useState(false);
   const [salaryPosts, setSalaryPosts] = React.useState([]);
+  const [salaryPostsLoading, setSalaryPostsLoading] = React.useState(false);
   const [salaryPostsError, setSalaryPostsError] = React.useState('');
   const [filterSource, setFilterSource] = React.useState('');
   const [filterVerified, setFilterVerified] = React.useState(''); // '', 'verified', 'not_verified'
@@ -115,6 +116,7 @@ export default function App() {
   });
 
   const fetchPosts = async (source = '', verifiedFilter = '') => {
+    setSalaryPostsLoading(true);
     setSalaryPostsError('');
     try {
       const params = new URLSearchParams();
@@ -133,6 +135,8 @@ export default function App() {
     } catch (e) {
       setSalaryPostsError('Алдаа: цалингийн постуудаа ачаалж чадсангүй');
       setSalaryPosts([]);
+    } finally {
+      setSalaryPostsLoading(false);
     }
   };
 
@@ -239,9 +243,20 @@ export default function App() {
                     <button onClick={()=>handleFilter('lambda')} className={`px-4 py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-5 w-5 md:h-6 md:w-6" /></button>
                   </div>
 
+                  {/* Loading state */}
+                  {salaryPostsLoading && (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+                        <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Уншиж байна...</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Animated columns - 4 max */}
-                  <div className={`transition ${isFormActive? 'blur-[2px]' : ''}`}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-auto lg:h-[75vh] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] overflow-hidden content-start">
+                  {!salaryPostsLoading && (
+                    <div className={`transition ${isFormActive? 'blur-[2px]' : ''}`}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-auto lg:h-[75vh] [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] overflow-hidden content-start">
                       {/* Column 1 */}
                       <ul className={`space-y-4 animate-scroll hover:[animation-play-state:paused] ${selectedJob ? '[animation-play-state:paused]' : ''}`}>
                         {cols[0].map((job, idx) => (
@@ -268,6 +283,7 @@ export default function App() {
                       </ul>
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
             </div>
