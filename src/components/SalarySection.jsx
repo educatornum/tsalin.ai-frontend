@@ -98,6 +98,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState('');
   const [uploadResult, setUploadResult] = React.useState(null);
+  const [uploadStatus, setUploadStatus] = React.useState(''); // Status message for upload process
   const [postModalOpen, setPostModalOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(false);
 
@@ -446,6 +447,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
     try {
       setUploadError('');
       setAnalyzeError('');
+      setUploadStatus('Файл илгээж байна...');
       setUploading(true);
       // Upload
       const fd = new FormData();
@@ -461,6 +463,8 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       setUploadResult(uploadData);
 
       // Analyze
+      setUploadStatus('Файл боловсруулж байна...');
+      setUploading(false);
       setAnalyzing(true);
       const candidates = [];
       const pushIf = (u) => { if (u && !candidates.includes(u)) candidates.push(u); };
@@ -481,6 +485,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
         pushIf(`${base}/resumes/${encodeURIComponent(last)}`);
         if (segments.length > 1) pushIf(`${base}/resumes/${segments.slice(1).map(encodeURIComponent).join('/')}`);
       }
+      setUploadStatus('Таньд тохирох ажлын саналыг боловсруулж байна...');
       let list = [];
       for (const url of candidates) {
         try {
@@ -490,10 +495,15 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
       }
       if (!list || !list.length) throw new Error('AI-с үр дүн ирсэнгүй');
       setAiPositions(list);
-      setModalOpen(true);
+      setUploadStatus('Бэлэн боллоо! ✓');
+      setTimeout(() => {
+        setModalOpen(true);
+        setUploadStatus('');
+      }, 800);
     } catch (e) {
       // Prefer analyze error text for user
       setAnalyzeError(e?.message || 'Алдаа гарлаа');
+      setUploadStatus('');
     } finally {
       setUploading(false);
       setAnalyzing(false);
@@ -735,9 +745,16 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
 
       {/* Upload & analyze controls */}
       <div className="space-y-2 pt-2">
-        <div className="md:col-span-2 flex justify-between">
-          {/* <button onClick={back} className="px-4 py-2 rounded-xl border border-slate-700 dark:border-gray-300 text-slate-100 dark:text-slate-900">Back</button> */}
-          <button onClick={uploadAndAnalyze} disabled={!form.file || uploading || analyzing} className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center text-base font-semibold disabled:opacity-50">{uploading ? 'Илгээж байна.' : analyzing ? 'Таньд тохирох ажлын саналыг боловсруулж байна.' : 'Файл илгээх'}</button>
+        <div className="md:col-span-2 flex flex-col gap-2">
+          <button onClick={uploadAndAnalyze} disabled={!form.file || uploading || analyzing} className="h-12 px-6 rounded-2xl bg-[#fbd433] text-black dark:bg-[#fbd433] dark:text-black flex items-center justify-center text-base font-semibold disabled:opacity-50 transition-all">
+            {uploadStatus || 'Файл илгээх'}
+          </button>
+          {uploadStatus && (
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+              <span>{uploadStatus}</span>
+            </div>
+          )}
         </div>
         {/* <div className="text-xs text-slate-400 dark:text-slate-600 space-y-1">
           <div className={`${(!uploading && !analyzing) ? 'text-slate-200 dark:text-slate-800 font-medium' : ''}`}>1. Файл илгээх.</div>
