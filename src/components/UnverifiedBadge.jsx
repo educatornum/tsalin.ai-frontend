@@ -8,7 +8,7 @@ export default function UnverifiedBadge({ className = 'h-4 w-4' }) {
       className={className}
       aria-label="Unverified"
     >
-      <circle cx="12" cy="12" r="10" fill="#9CA3AF" />
+      <circle cx="12" cy="12" r="10" fill="#EF4444" />
       <path d="M8 8l8 8M16 8l-8 8" stroke="white" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );

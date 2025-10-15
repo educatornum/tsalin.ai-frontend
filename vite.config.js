@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 // Adjust if your repository name differs
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/'
 // local дээрээ proxy-лэх
 //   server: {
 //     proxy: {

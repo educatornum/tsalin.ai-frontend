@@ -68,7 +68,7 @@ export default function JobCard({ job, enter = true, variant }) {
         <strong className="break-words truncate text-xs sm:text-sm">
             @{String(job.company || '').replace(/\s+/g, ' ').trim().toUpperCase()}
         </strong>
-          {job.verified ? <VerifiedBadge className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <UnverifiedBadge className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+          {/* {job.verified ? <VerifiedBadge className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <UnverifiedBadge className="h-2.5 w-2.5 sm:h-3 sm:w-3" />} */}
           {job.sourceTag && (
             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border border-[#020202] text-[#020202] bg-white dark:bg-white dark:text-[#020202]">{job.sourceTag}</span>
           )}

@@ -121,16 +121,25 @@ export default function App() {
     try {
       const params = new URLSearchParams();
       if (source) params.set('source', source);
+      // Only send is_verified=true to backend, filter "not verified" on frontend
       if (verifiedFilter === 'verified') params.set('is_verified', 'true');
-      if (verifiedFilter === 'not_verified') params.set('is_verified', 'false');
       const q = params.toString();
-      const res = await fetch(`/api/salary-posts${q ? `?${q}` : ''}`);
+      const url = `/api/salary-posts${q ? `?${q}` : ''}`;
+      console.log('🔍 Fetching:', url);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+      console.log('📊 Received posts:', list.length, 'posts');
+      console.log('🎯 Verified filter:', verifiedFilter);
+      console.log('📋 Sample post:', list[0]);
+      // Filter on frontend
       const filtered = verifiedFilter === ''
         ? list
-        : list.filter((p) => verifiedFilter === 'verified' ? Boolean(p?.is_verified) : !Boolean(p?.is_verified));
+        : verifiedFilter === 'verified'
+          ? list.filter((p) => Boolean(p?.is_verified))
+          : list.filter((p) => !Boolean(p?.is_verified));
+      console.log('✅ Filtered posts:', filtered.length, 'posts');
       setSalaryPosts(filtered.map(mapPost));
     } catch (e) {
       setSalaryPostsError('Алдаа: цалингийн постуудаа ачаалж чадсангүй');
@@ -225,22 +234,34 @@ export default function App() {
                     </div>
                   </div> */}
 
-                  {/* Filters: source + verified on one row */}
-                  <div className="mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto">
-                    <button onClick={()=>handleVerifiedFilter('')} className={`ml-2 px-4 py-2 rounded-full border ${filterVerified===''? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-sm flex items-center gap-2 shrink-0`}>
-                      Бүгд
-                    </button>
-                    <button onClick={()=>handleVerifiedFilter('verified')} className={`px-4 py-2 rounded-full border ${filterVerified==='verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-sm flex items-center gap-2 shrink-0`}>
-                      <VerifiedBadge className="h-5 w-5 md:h-6 md:w-6" /> Баталгаажсан
-                    </button>
-                    <button onClick={()=>handleVerifiedFilter('not_verified')} className={`px-4 py-2 rounded-full border ${filterVerified==='not_verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-sm flex items-center gap-2 shrink-0`}>
-                      <UnverifiedBadge className="h-5 w-5 md:h-6 md:w-6" /> Баталгаажаагүй
-                    </button>
-                    <h2 className="text-[#020202] dark:text-white text-sm md:text-base font-medium whitespace-nowrap shrink-0">Эх сурвалж:</h2>
-                    <button onClick={()=>handleFilter('')} className={`px-4 py-2 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}> Бүгд</button>
-                    <button onClick={()=>handleFilter('user_submission')} className={`px-4 py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-5 w-5 md:h-6 md:w-6" /></button>
-                    <button onClick={()=>handleFilter('cv_upload')} className={`px-4 py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-5 w-5 md:h-6 md:w-6" /></button>
-                    <button onClick={()=>handleFilter('lambda')} className={`px-4 py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-sm shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-5 w-5 md:h-6 md:w-6" /></button>
+                  {/* Filters: 2 rows on mobile, 1 row on desktop */}
+                  <div className="mb-4 space-y-2 sm:space-y-0">
+                    {/* Row 1: Verified filters */}
+                    <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto px-1 sm:px-0">
+                      <button onClick={()=>handleVerifiedFilter('')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified===''? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
+                        Бүгд
+                      </button>
+                      <button onClick={()=>handleVerifiedFilter('verified')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
+                        <VerifiedBadge className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажсан</span>
+                      </button>
+                      <button onClick={()=>handleVerifiedFilter('not_verified')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='not_verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
+                        <UnverifiedBadge className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажаагүй</span>
+                      </button>
+                      
+                      {/* Source filters - inline on desktop only */}
+                      <button onClick={()=>handleFilter('')} className={`hidden sm:flex px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm items-center gap-1 sm:gap-2 shrink-0`}> Бүгд</button>
+                      <button onClick={()=>handleFilter('user_submission')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
+                      <button onClick={()=>handleFilter('cv_upload')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
+                      <button onClick={()=>handleFilter('lambda')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
+                    </div>
+                    
+                    {/* Row 2: Source filters - mobile only */}
+                    <div className="flex sm:hidden flex-nowrap items-center gap-1.5 overflow-x-auto px-1">
+                      <button onClick={()=>handleFilter('')} className={`px-2 py-1.5 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-xs flex items-center gap-1 shrink-0`}> Бүгд</button>
+                      <button onClick={()=>handleFilter('user_submission')} className={`px-2 py-1.5 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4" /></button>
+                      <button onClick={()=>handleFilter('cv_upload')} className={`px-2 py-1.5 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4" /></button>
+                      <button onClick={()=>handleFilter('lambda')} className={`px-2 py-1.5 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4" /></button>
+                    </div>
                   </div>
 
                   {/* Loading state */}
@@ -292,6 +313,7 @@ export default function App() {
                           <li key={`c4-${idx}`} onClick={()=>openJob(job)}><JobCard job={job} enter={false} /></li>
                         ))}
                       </ul>
+                      
                     </div>
                   </div>
                   )}
@@ -304,19 +326,26 @@ export default function App() {
         <JobModal job={selectedJob} onClose={closeJob} />
       </main>
 
-      {/* <Fab />
-      <button className="
+      {/* <Fab /> */}
+      {/* <button className="
         fixed 
-        p-2 left-5 bottom-5 bg-white border
-        border-gray-200 rounded-full 
-        px-4 py-2 shadow-lg flex items-center gap-2 text-gray-900">
-        Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-4 w-4" />
-      </button>
-      <footer className="fixed inset-x-0 bottom-0 z-40">
-        <h1 className="text-center text-lg text-[#020202] p-4 dark:text-gray-400">
-          2025 © Tsalin.ai
-        </h1>
-      </footer> */}
+        left-3 sm:left-4 sm:bottom-14 
+        bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full 
+        px-3 py-1.5 sm:px-4 sm:py-2 
+        shadow-lg flex items-center gap-2 text-gray-900 dark:text-white
+        text-xs sm:text-sm z-50">
+        Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-3 w-3 sm:h-4 sm:w-4" />
+      </button> */}
+      <footer className="fixed inset-x-0 bottom-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+        <a 
+          href="https://lambda.global" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-center text-sm sm:text-base md:text-lg text-[#020202] py-2 sm:py-3 md:py-4 dark:text-gray-400 flex items-center justify-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+        >
+          Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-4 w-4 sm:h-5 sm:w-5" />
+        </a>
+      </footer>
     </div>
   );
 }
