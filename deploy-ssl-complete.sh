@@ -130,9 +130,9 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
 
-    # Proxy API requests to backend using server IP
+    # Proxy API requests to backend on same server (Docker host)
     location /api/ {
-        proxy_pass http://34.107.5.242:3000/api/;
+        proxy_pass http://172.17.0.1:3000/api/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
