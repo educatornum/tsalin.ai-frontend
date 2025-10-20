@@ -63,6 +63,7 @@ export default function JobCard({ job, enter = true, variant }) {
               <UnverifiedBadge className="h-3 w-3 sm:h-4 sm:w-4" />
             </span>
           )}
+          
         </div>
         <div className={`text-xs sm:text-sm flex items-center gap-1 min-w-0 flex-1 ${variant==='amber' ? 'text-amber-200' : variant==='outline' ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
         <strong className="break-words truncate text-xs sm:text-sm">
@@ -74,24 +75,13 @@ export default function JobCard({ job, enter = true, variant }) {
           )}
         </div>
       </div>
+      
       <p className="text-xs sm:text-sm leading-5 sm:leading-6 pt-1 break-words overflow-hidden">
         {job.experienceYears ? `${job.experienceYears} жилийн туршлагатай ` : ''}
         <span className="break-words text-xs sm:text-sm">"{job.title}"</span> <strong className="font-semibold text-xs sm:text-sm">{job.salary}</strong> цалин авч байна.
        </p>
       <div className={`mt-3 flex items-center justify-between text-xs sm:text-sm ${variant==='amber' ? 'text-amber-200/90' : variant==='outline' ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`}>
         <span className="text-xs sm:text-sm">{job.timeAgo}</span>
-        {/* <div className="flex items-center gap-2">
-          <button type="button" onClick={onShareFacebook} className={`inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full ${variant==='outline' ? 'border border-white/40 text-white' : 'border border-slate-300 text-blue-600'} bg-white dark:bg-slate-900`} aria-label="Share on Facebook">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 sm:h-4 sm:w-4">
-              <path d="M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.91h2.54V9.41c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.77l-.44 2.91h-2.33v7.03C18.34 21.2 22 17.06 22 12.06Z" />
-            </svg>
-          </button>
-          <button type="button" onClick={onShareInstagram} className={`inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full ${variant==='outline' ? 'border border-white/40 text-white' : 'border border-slate-300 text-pink-600'} bg-white dark:bg-slate-900`} aria-label="Share on Instagram">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 sm:h-4 sm:w-4">
-              <path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zm0 2a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm5.25-.75a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5z" />
-            </svg>
-          </button>
-        </div> */}
       </div>
 
       {previewOpen && (

@@ -739,7 +739,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
             <span className="font-medium">{form.file.name}</span>
             <span className="ml-2 text-slate-400 dark:text-slate-600">{(form.file.size / 1024 / 1024).toFixed(2)} MB</span>
           </div>
-          <button type="button" onClick={() => setForm((f) => ({ ...f, file: null }))} className="px-3 py-1.5 rounded-md border border-slate-700 dark:border-gray-300 text-slate-100 dark:text-slate-900">Remove</button>
+          <button type="button" onClick={() => setForm((f) => ({ ...f, file: null }))} className="px-3 py-1.5 rounded-md border border-slate-700 dark:border-gray-300 text-slate-100 dark:text-slate-900">Устгах</button>
         </div>
       )}
 
@@ -1258,17 +1258,69 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(aiPositions.length ? aiPositions : [
                   { _id: 'fallback-1', position_name_mn: 'Санал болгох ажлын байр', salary: 0 },
-                ]).map((p) => (
-                  <div key={p._id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition p-5">
-                    <div className="text-slate-900 dark:text-slate-100 font-semibold">
-                      {p.position_name_mn || p.position_id?.name_mn || p.position_name_en}
+                ]).map((p) => {
+                  const positionName = p.position_name_mn || p.position_id?.name_mn || p.position_name_en || 'ажлын байр';
+                  
+                  const handleLambdaSearch = async () => {
+                    try {
+                      // Copy position name to clipboard
+                      await navigator.clipboard.writeText(positionName);
+                      
+                      // Open Lambda jobs page
+                      const newWindow = window.open('https://lambda.global/jobs', '_blank');
+                      
+                      // Show a brief instruction message
+                      if (newWindow) {
+                        // Create a temporary instruction overlay
+                        const instruction = document.createElement('div');
+                        instruction.innerHTML = `
+                          <div style="
+                            position: fixed; top: 20px; right: 20px; z-index: 9999;
+                            background: #10B981; color: white; padding: 12px 16px;
+                            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                            font-family: system-ui; font-size: 14px; max-width: 300px;
+                          ">
+                            ✅ "${positionName}" copied to clipboard!<br>
+                            Paste (Ctrl+V) in Lambda's search box.
+                          </div>
+                        `;
+                        document.body.appendChild(instruction);
+                        
+                        // Remove instruction after 4 seconds
+                        setTimeout(() => {
+                          document.body.removeChild(instruction);
+                        }, 4000);
+                      }
+                    } catch (err) {
+                      // Fallback: just open Lambda
+                      window.open('https://lambda.global/jobs', '_blank');
+                    }
+                  };
+                  
+                  return (
+                    <div key={p._id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition p-5">
+                      <div className="text-slate-900 dark:text-slate-100 font-semibold mb-4">
+                        {positionName}
+                      </div>
+                      <div className="mt-2 text-xs uppercase text-slate-500 dark:text-slate-400">Боломжит цалин</div>
+                      <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100 mb-4">
+                        {formatCurrency(p.salary)} MNT
+                      </div>
+                      <div className="space-y-2">
+                        <button
+                          onClick={handleLambdaSearch}
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-sm flex items-center justify-center gap-2"
+                          title={`${positionName} ажлын байрыг Lambda дээр хайх`}
+                        >
+                          <span>Lambda дээр хайх</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="mt-6 text-xs uppercase text-slate-500 dark:text-slate-400">Боломжит цалин</div>
-                    <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">
-                      {formatCurrency(p.salary)} MNT
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             <div className="px-6 py-4 flex justify-end gap-3 border-t border-slate-200 dark:border-slate-700">
@@ -1329,8 +1381,8 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
             </div>
           </div>
           {/* Simple confetti sprinklers */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {Array.from({ length: 1736 }).map((_, i) => (
+          {/* <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {Array.from({ length: 600 }).map((_, i) => (
               <span key={i} className="absolute block rounded-sm"
                 style={{
                   left: `${Math.random()*100}%`,
@@ -1338,11 +1390,11 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
                   width: `${6+Math.random()*6}px`,
                   height: `${4+Math.random()*4}px`,
                   backgroundColor: ['#fbd433','#da2c16','#6941C6','#22c55e','#3b82f6'][i%5],
-                  animation: `fall ${1.8+Math.random()*1.2}s linear ${Math.random()*0.8}s forwards, spin ${1.8+Math.random()*1.2}s linear ${Math.random()*0.8}s forwards`
+                  animation: `fall ${0.9+Math.random()*0.6}s linear ${Math.random()*0.4}s forwards, spin ${0.9+Math.random()*0.6}s linear ${Math.random()*0.4}s forwards`
                 }}
               />
             ))}
-          </div>
+          </div> */}
         </div>
         <style>{`@keyframes fall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(360deg);opacity:.95}}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(720deg)}}@keyframes pop{0%{transform:scale(.85);filter:blur(4px);opacity:0}100%{transform:scale(1);filter:blur(0);opacity:1}}`}</style>
       </div>, document.body

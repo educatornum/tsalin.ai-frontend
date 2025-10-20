@@ -28,27 +28,18 @@ export default function App() {
   };
   
   const handleUnlockClick = () => {
-    console.log('🔓 Unlock button clicked!');
-    console.log('Current isUnlocked:', isUnlocked);
-    console.log('Current salary count:', localStorage.getItem('salarySubmissionCount'));
-    
     // Hide the overlay immediately (session only)
-    console.log('Hiding overlay...');
     setIsUnlocked(true);
     
     // Force step to 1
-    console.log('Setting forceStep1 to true...');
     setForceStep1(true);
     
     // Scroll to salary section
-    console.log('Starting scroll in 100ms...');
     setTimeout(() => {
       const el = document.getElementById('salary-section');
       if (el) {
-        console.log('✅ Found salary-section element, scrolling...');
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        console.log('❌ Salary section not found, scrolling to top');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }, 100);
@@ -59,14 +50,52 @@ export default function App() {
   const [salaryPostsError, setSalaryPostsError] = React.useState('');
   const [filterSource, setFilterSource] = React.useState('');
   const [filterVerified, setFilterVerified] = React.useState(''); // '', 'verified', 'not_verified'
+  const [activeTooltip, setActiveTooltip] = React.useState(null);
+  const [sourceDescription, setSourceDescription] = React.useState('Бүх эх сурвалж');
+  const [verifiedDescription, setVerifiedDescription] = React.useState('Бүх төрлийн дата');
+  
+  // Animated stats state
+  const [animatedStats, setAnimatedStats] = React.useState({
+    totalData: 1,
+    todayData: 1,
+    todayComparisons: 1
+  });
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [forceStep1, setForceStep1] = React.useState(false);
+
+  // Animation function for stats
+  const animateStats = (targetValue) => {
+    const todayData = Math.floor(targetValue * 0.3); // 30% of total for today
+    const todayComparisons = Math.floor(targetValue * 0.15); // 15% of total for comparisons
+    
+    // Animate total data
+    const animateNumber = (key, start, end, duration = 2000) => {
+      const startTime = performance.now();
+      const updateNumber = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3); // easeOut cubic
+        const current = Math.floor(start + (end - start) * easeOut);
+        
+        setAnimatedStats(prev => ({ ...prev, [key]: current }));
+        
+        if (progress < 1) {
+          requestAnimationFrame(updateNumber);
+        }
+      };
+      requestAnimationFrame(updateNumber);
+    };
+    
+    // Start animations with slight delays for visual effect
+    animateNumber('totalData', 1, targetValue, 2000);
+    setTimeout(() => animateNumber('todayData', 1, todayData, 1500), 300);
+    setTimeout(() => animateNumber('todayComparisons', 1, todayComparisons, 1500), 600);
+  };
 
   // Check unlock status from localStorage based on salary submission counter
   React.useEffect(() => {
     const salaryCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
     const unlocked = salaryCount >= 1;
-    console.log('Salary submission count:', salaryCount, 'Unlocked:', unlocked);
     setIsUnlocked(unlocked);
   }, []);
 
@@ -75,7 +104,6 @@ export default function App() {
     const handleSalarySubmitted = () => {
       const salaryCount = parseInt(localStorage.getItem('salarySubmissionCount') || '0');
       const unlocked = salaryCount >= 1;
-      console.log('Salary submitted, count:', salaryCount, 'Unlocked:', unlocked);
       setIsUnlocked(unlocked);
     };
 
@@ -130,17 +158,17 @@ export default function App() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
-      console.log('📊 Received posts:', list.length, 'posts');
-      console.log('🎯 Verified filter:', verifiedFilter);
-      console.log('📋 Sample post:', list[0]);
       // Filter on frontend
       const filtered = verifiedFilter === ''
         ? list
         : verifiedFilter === 'verified'
           ? list.filter((p) => Boolean(p?.is_verified))
           : list.filter((p) => !Boolean(p?.is_verified));
-      console.log('✅ Filtered posts:', filtered.length, 'posts');
-      setSalaryPosts(filtered.map(mapPost));
+        console.log('✅ Filtered posts:', filtered.length, 'posts');
+        setSalaryPosts(filtered.map(mapPost));
+        
+        // Animate stats
+        animateStats(filtered.length);
     } catch (e) {
       setSalaryPostsError('Алдаа: цалингийн постуудаа ачаалж чадсангүй');
       setSalaryPosts([]);
@@ -157,9 +185,18 @@ export default function App() {
 
   const handleFilter = (src) => {
     setFilterSource(src);
+    // Set description based on source
+    if (src === '') setSourceDescription('Бүх эх сурвалж');
+    else if (src === 'user_submission') setSourceDescription('Цалин.ai');
+    else if (src === 'cv_upload') setSourceDescription('CV- нээс оруулсан');
+    else if (src === 'lambda') setSourceDescription('Lambda-с');
   };
   const handleVerifiedFilter = (vf) => {
     setFilterVerified(vf);
+    // Set description based on verified filter
+    if (vf === '') setVerifiedDescription('Бүх төрөл');
+    else if (vf === 'verified') setVerifiedDescription('Баталгаажуулсан мэдээлэл');
+    else if (vf === 'not_verified') setVerifiedDescription('Баталгаажаагүй мэдээлэл');
   };
 
   const posts = salaryPosts.length ? salaryPosts : jobs;
@@ -210,6 +247,7 @@ export default function App() {
 
       <main className={`w-full transition-all duration-300 ${!isUnlocked ? 'blur-sm pointer-events-none' : ''}`}>
         {/* Salary posts area with form and stats (matches mock) */}
+        
         <section className="relative w-full h-auto lg:h-[calc(100vh-5rem)] overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
           <div className="px-[40px] w-full mx-auto py-6">
             <div className="relative rounded-none border-0 bg-transparent shadow-none p-0">
@@ -222,8 +260,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Right column: stats + animated posts */}
-                <div className="px-0" onMouseDown={()=>setIsFormActive(false)}>
+                {/* Right column: animated posts */}
+                <div className="pb-2" onMouseDown={()=>setIsFormActive(false)}>
                   {/* Two big stat posts */}
                   {/* <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 transition ${isFormActive? 'blur-[1.5px]' : ''}`}>
                     <div className="sm:justify-self-center max-w-[280px] w-full">
@@ -234,35 +272,134 @@ export default function App() {
                     </div>
                   </div> */}
 
-                  {/* Filters: 2 rows on mobile, 1 row on desktop */}
-                  <div className="mb-4 space-y-2 sm:space-y-0">
-                    {/* Row 1: Verified filters */}
-                    <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto px-1 sm:px-0">
-                      <button onClick={()=>handleVerifiedFilter('')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified===''? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
-                        Бүгд
-                      </button>
-                      <button onClick={()=>handleVerifiedFilter('verified')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
-                        <VerifiedBadge className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажсан</span>
-                      </button>
-                      <button onClick={()=>handleVerifiedFilter('not_verified')} className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='not_verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0`}>
-                        <UnverifiedBadge className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажаагүй</span>
-                      </button>
-                      
-                      {/* Source filters - inline on desktop only */}
-                      <button onClick={()=>handleFilter('')} className={`hidden sm:flex px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-xs sm:text-sm items-center gap-1 sm:gap-2 shrink-0`}> Бүгд</button>
-                      <button onClick={()=>handleFilter('user_submission')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
-                      <button onClick={()=>handleFilter('cv_upload')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
-                      <button onClick={()=>handleFilter('lambda')} className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} items-center shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" /></button>
+                  {/* Stats cards - back to original position */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {/* Stat 1: Total Salary Data */}
+                    <div className="bg-red-600 dark:bg-red-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <div className="text-5xl font-bold text-white mb-2">
+                        {animatedStats.totalData}+
+                      </div>
+                      <div className="text-md text-white font-medium">
+                        Нийт цалингийн дата
+                      </div>
                     </div>
-                    
-                    {/* Row 2: Source filters - mobile only */}
-                    <div className="flex sm:hidden flex-nowrap items-center gap-1.5 overflow-x-auto px-1">
-                      <button onClick={()=>handleFilter('')} className={`px-2 py-1.5 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-xs flex items-center gap-1 shrink-0`}> Бүгд</button>
-                      <button onClick={()=>handleFilter('user_submission')} className={`px-2 py-1.5 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4" /></button>
-                      <button onClick={()=>handleFilter('cv_upload')} className={`px-2 py-1.5 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4" /></button>
-                      <button onClick={()=>handleFilter('lambda')} className={`px-2 py-1.5 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4" /></button>
+
+                    {/* Stat 2: Today's Salary Data */}
+                    <div className="bg-red-600 dark:bg-yellow-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <div className="text-5xl font-bold text-white mb-2">
+                        {animatedStats.todayData}+
+                      </div>
+                      <div className="text-md text-white font-medium">
+                        Өнөөдөр цалингийн дата
+                      </div>
+                    </div>
+
+                    {/* Stat 3: Today's Comparisons */}
+                    <div className="bg-red-600 dark:bg-gray-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <div className="text-5xl font-bold text-white mb-2">
+                        {animatedStats.todayComparisons}+
+                      </div>
+                      <div className="text-md text-white font-medium">
+                        Өнөөдөр цалингийн харьцуулалт
+                      </div>
                     </div>
                   </div>
+
+                    {/* Filters: 2 rows on mobile, 1 row on desktop */}
+                   <div className="mb-4 space-y-3 sm:space-y-0">
+                     {/* Row 1: Verified filters - mobile: only verified/not_verified, desktop: all */}
+                     <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 overflow-x-auto overflow-y-visible px-1 sm:px-0">
+                       <div className="flex items-center gap-2">
+                         <h1 className="text-slate-900 dark:text-white">Төрөл:</h1>
+                       </div>
+                       {/* Бүгд button - desktop only */}
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleVerifiedFilter('')}
+                           className={`hidden sm:flex px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified===''? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202] hover:bg-gray-100 dark:hover:bg-gray-50'} text-xs sm:text-sm items-center gap-1 sm:gap-2 shrink-0 transition-all duration-200 hover:scale-105`}>
+                           Бүгд
+                         </button>
+                         
+                       </div>
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleVerifiedFilter('verified')}
+                           className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202] hover:bg-gray-100 dark:hover:bg-gray-50'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0 transition-all duration-200 hover:scale-105`}>
+                           <VerifiedBadge className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажсан</span>
+                         </button>
+                         
+                       </div>
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleVerifiedFilter('not_verified')}
+                           className={`px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterVerified==='not_verified'? 'bg-[#020202] text-white border-[#020202]' : 'bg-white text-[#020202] border-[#020202] hover:bg-gray-100 dark:hover:bg-gray-50'} text-xs sm:text-sm flex items-center gap-1 sm:gap-2 shrink-0 transition-all duration-200 hover:scale-105`}>
+                           <UnverifiedBadge className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5" /> <span className="hidden sm:inline">Баталгаажаагүй</span>
+                         </button>
+                         
+                       </div>
+                       {/* Desktop only: Эх сурвалж section */}
+                       <div className="hidden sm:flex items-center gap-2">
+                         <h1 className="text-slate-900 dark:text-white">Эх сурвалж:</h1>
+                         {sourceDescription && (
+                           <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 italic">
+                             {sourceDescription}
+                           </span>
+                         )}
+                       </div>
+                       {/* Desktop only: Source filters */}
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleFilter('')}
+                           className={`hidden sm:flex px-2 py-1.5 sm:px-4 sm:py-2 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202] hover:bg-[#fbd433]/20'} text-xs sm:text-sm items-center gap-1 sm:gap-2 shrink-0 transition-all duration-200 hover:scale-105`}>
+                           Бүгд
+                         </button>
+                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-8 py-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-base font-semibold rounded-2xl shadow-2xl border-2 border-slate-300 dark:border-slate-600 whitespace-nowrap min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-[99999]">
+                           Бүх эх сурвалж
+                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-0.5 border-8 border-transparent border-t-white dark:border-t-slate-900"></div>
+                         </div>
+                       </div>
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleFilter('user_submission')}
+                           className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202] hover:bg-[#fbd433]/20'} items-center shrink-0 transition-all duration-200 hover:scale-105`}>
+                           <img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                         </button>
+                       
+                       </div>
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleFilter('cv_upload')}
+                           className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202] hover:bg-[#fbd433]/20'} items-center shrink-0 transition-all duration-200 hover:scale-105`}>
+                           <img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                         </button>
+                         
+                       </div>
+                       <div className="relative group">
+                         <button 
+                           onClick={()=>handleFilter('lambda')}
+                           className={`hidden sm:flex px-2 py-1.5 sm:px-3 sm:py-2 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202] hover:bg-[#fbd433]/20'} items-center shrink-0 transition-all duration-200 hover:scale-105`}>
+                           <img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                         </button>
+                        
+                       </div>
+                     </div>
+                     
+                     {/* Row 2: Source filters - mobile only */}
+                     <div className="flex sm:hidden flex-nowrap items-center gap-1.5 overflow-x-auto px-1">
+                       <div className="flex items-center gap-2">
+                         <h1 className="text-slate-900 dark:text-white">Эх сурвалж:</h1>
+                         {sourceDescription && (
+                           <span className="text-xs text-slate-600 dark:text-slate-400 italic">
+                             {sourceDescription}
+                           </span>
+                         )}
+                       </div>
+                       <button onClick={()=>handleFilter('')} className={`px-2 py-1.5 rounded-full border ${filterSource===''? 'bg-[#fbd433] text-[#020202] border-[#fbd433]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} text-xs flex items-center gap-1 shrink-0`}> Бүгд</button>
+                       <button onClick={()=>handleFilter('user_submission')} className={`px-2 py-1.5 rounded-full border ${filterSource==='user_submission'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('logo-svg/Symbol Black.svg')} alt="TSALIN.ai" className="h-4 w-4" /></button>
+                       <button onClick={()=>handleFilter('cv_upload')} className={`px-2 py-1.5 rounded-full border ${filterSource==='cv_upload'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('cv.png')} alt="CV_upload" className="h-4 w-4" /></button>
+                       <button onClick={()=>handleFilter('lambda')} className={`px-2 py-1.5 rounded-full border ${filterSource==='lambda'? 'bg-[#fbd433] text-[#020202] border-[#020202]' : 'bg-white dark:bg-white text-[#020202] border-[#020202]'} shrink-0`}><img src={asset('lamb-logo.png')} alt="lambda" className="h-4 w-4" /></button>
+                     </div>
+                   </div>
 
                   {/* Loading state */}
                   {salaryPostsLoading && (
@@ -324,6 +461,7 @@ export default function App() {
         </section>
 
         <JobModal job={selectedJob} onClose={closeJob} />
+        
       </main>
 
       {/* <Fab /> */}
