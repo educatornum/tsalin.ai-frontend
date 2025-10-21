@@ -11,7 +11,7 @@ import TopStats from './components/TopStats.jsx';
 import StatPost from './components/StatPost.jsx';
 import VerifiedBadge from './components/VerifiedBadge.jsx';
 import UnverifiedBadge from './components/UnverifiedBadge.jsx';
-
+import { FaArrowUpRightDots,FaArrowTrendUp,FaLayerGroup } from "react-icons/fa6";
 const asset = (p) => {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
   const path = String(p || '').replace(/^\/+/, '');
@@ -276,8 +276,11 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     {/* Stat 1: Total Salary Data */}
                     <div className="bg-red-600 dark:bg-red-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                      <div className="text-5xl font-bold text-white mb-2">
-                        {animatedStats.totalData}+
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <FaArrowUpRightDots className="text-2xl text-white" />
+                        <div className="text-5xl font-bold text-white">
+                          {animatedStats.totalData}+
+                        </div>
                       </div>
                       <div className="text-md text-white font-medium">
                         Нийт цалингийн дата
@@ -285,22 +288,31 @@ export default function App() {
                     </div>
 
                     {/* Stat 2: Today's Salary Data */}
-                    <div className="bg-red-600 dark:bg-yellow-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                      <div className="text-5xl font-bold text-white mb-2">
-                        {animatedStats.todayData}+
+                    <div className="bg-red-600 dark:bg-red-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <FaArrowTrendUp className="text-2xl text-white" />
+                        <div className="text-5xl font-bold text-white">
+                          {animatedStats.totalData}+
+                        </div>
                       </div>
                       <div className="text-md text-white font-medium">
-                        Өнөөдөр цалингийн дата
+                      Өнөөдөр цалингийн дата
                       </div>
                     </div>
 
+                    
+
                     {/* Stat 3: Today's Comparisons */}
-                    <div className="bg-red-600 dark:bg-gray-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                      <div className="text-5xl font-bold text-white mb-2">
-                        {animatedStats.todayComparisons}+
+
+                    <div className="bg-red-600 dark:bg-red-600 rounded-lg p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <FaLayerGroup className="text-2xl text-white" />
+                        <div className="text-5xl font-bold text-white">
+                          {animatedStats.todayComparisons}+
+                        </div>
                       </div>
                       <div className="text-md text-white font-medium">
-                        Өнөөдөр цалингийн харьцуулалт
+                      Өнөөдөр цалингийн харьцуулалт
                       </div>
                     </div>
                   </div>
@@ -475,14 +487,22 @@ export default function App() {
         Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-3 w-3 sm:h-4 sm:w-4" />
       </button> */}
       <footer className="fixed inset-x-0 bottom-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-        <a 
-          href="https://lambda.global" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-center text-sm sm:text-base md:text-lg text-[#020202] py-2 sm:py-3 md:py-4 dark:text-gray-400 flex items-center justify-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-        >
-          Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-4 w-4 sm:h-5 sm:w-5" />
-        </a>
+        <div className="flex items-center justify-between px-4 py-2 sm:py-3 md:py-4">
+          <a 
+            href="/terms"
+            className="text-lg text-[#020202] dark:text-gray-400 hover:opacity-80 transition-opacity"
+          >
+            Үйлчилгээний нөхцөл
+          </a>
+          <a 
+            href="https://lambda.global" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm sm:text-base md:text-lg text-[#020202] dark:text-gray-400 flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            Powered by Lambda <img src={asset('lamb-logo.png')} alt="Lambda" className="h-4 w-4 sm:h-5 sm:w-5" />
+          </a>
+        </div>
       </footer>
     </div>
   );

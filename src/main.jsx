@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import AllJobs from './pages/AllJobs.jsx';
+import Terms from './pages/Terms.jsx';
 import './styles.css';
 
 const rootElement = document.getElementById('root');
@@ -14,6 +15,7 @@ function Router() {
   }, []);
 
   if (path === '/all-jobs') return <AllJobs />;
+  if (path === '/terms') return <Terms />;
   return <App />;
 }
 

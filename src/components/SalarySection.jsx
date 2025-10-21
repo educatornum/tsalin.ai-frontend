@@ -1231,8 +1231,8 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
     modalOpen ? createPortal(
       <div className="fixed inset-0 z-[9999]">
         <div className="absolute inset-0 bg-black/60" onClick={() => setModalOpen(false)} />
-        <div className="relative z-10 flex items-center justify-center min-h-full p-4">
-          <div className="w-[min(92vw,960px)] max-h-[86vh] overflow-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700">
+        <div className="relative z-10 flex items-center justify-center min-h-full p-2">
+          <div className="w-[min(96vw,1200px)] max-h-[92vh] overflow-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
                 <img src={step===2 ? MainWhite : logoBlack} alt="Logo" className="h-10 w-10" />
@@ -1246,15 +1246,15 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
               <div><div className="text-xs uppercase opacity-60">Ажлын байр</div><div className="text-base font-semibold">{form.position || '—'}</div></div>
               <div><div className="text-xs uppercase opacity-60">Түвшин</div><div className="text-base font-semibold">{form.proLevelName || '—'}</div></div>
               <div><div className="text-xs uppercase opacity-60">Туршлага</div><div className="text-base font-semibold">{form.years || '—'} жил</div></div> */}
-              {form.file && (
+              {/* {form.file && (
                 <div className="md:col-span-2">
                   <div className="text-xs uppercase opacity-60">Файл</div>
                   <div className="text-base font-semibold break-all">{form.file.name}</div>
                 </div>
-              )}
+              )} */}
             </div>
             <div className="px-6 pb-6">
-              <h4 className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 mb-3">AI санал болгож буй ажлын байр</h4>
+              <h4 className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 mb-3">Таньд AI санал болгож буй ажлын байр</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(aiPositions.length ? aiPositions : [
                   { _id: 'fallback-1', position_name_mn: 'Санал болгох ажлын байр', salary: 0 },
@@ -1267,7 +1267,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
                       await navigator.clipboard.writeText(positionName);
                       
                       // Open Lambda jobs page
-                      const newWindow = window.open('https://lambda.global/jobs', '_blank');
+                      const newWindow = window.open('https://lambda.global/?q=' + positionName, '_blank');
                       
                       // Show a brief instruction message
                       if (newWindow) {
@@ -1293,7 +1293,7 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
                       }
                     } catch (err) {
                       // Fallback: just open Lambda
-                      window.open('https://lambda.global/jobs', '_blank');
+                      window.open('https://lambda.global/?q=' + positionName, '_blank');
                     }
                   };
                   
@@ -1309,10 +1309,10 @@ export default function SalarySection({ compact = false, isUnlocked: externalIsU
                       <div className="space-y-2">
                         <button
                           onClick={handleLambdaSearch}
-                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-sm flex items-center justify-center gap-2"
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-1.5 px-3 rounded-md transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 text-xs flex items-center justify-center gap-1.5"
                           title={`${positionName} ажлын байрыг Lambda дээр хайх`}
                         >
-                          <span>Lambda дээр хайх</span>
+                          <span>Lambda дээрх ажил</span>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
